@@ -140,44 +140,74 @@ def get_natal_chart(
     birth_time: str,
     latitude: float,
     longitude: float,
+    tz: str = "UTC",  # Додали підтримку часового поясу!
     language: str = "en"
 ):
     """
-    Розраховує натальну карту
-    
-    Parameters:
-    - birth_date: YYYY-MM-DD
-    - birth_time: HH:MM
-    - latitude: широта
-    - longitude: довгота
-    - language: мова (en, uk)
+    Розраховує натальну карту та віддає її у форматі для iOS (big_three + planets)
     """
-    
-    # Розраховуємо натальну карту
+    # 1. Рахуємо карту через твій модуль
     chart = calculate_natal_chart(birth_date, birth_time, latitude, longitude)
     
     if not chart:
         return {"error": "Could not calculate natal chart"}
-    
-    # Додаємо трактування для кожної планети
-    for planet_name, planet_data in chart['planets'].items():
-        meaning = get_planet_meaning(
-            planet_name,
-            planet_data['sign'],
-            planet_data['house'],
-            language
-        )
-        planet_data['meaning'] = meaning
-    
-    return {
-        "natal_chart": chart,
-        "birth_info": {
-            "date": birth_date,
-            "time": birth_time,
-            "latitude": latitude,
-            "longitude": longitude
+
+    # 2. Функція-помічник для форматування кожної планети
+    def format_planet(name, data):
+        house_str = data.get("house", "House_1")
+        # Перетворюємо "House_10" на число 10
+        house_num = int(house_str.split("_")[1]) if "_" in house_str else 1
+        
+        # Переклад назв планет для української
+        uk_names = {
+            "Sun": "Сонце", "Moon": "Місяць", "Mercury": "Меркурій",
+            "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпітер", "Saturn": "Сатурн"
         }
+        local_name = uk_names.get(name, name) if language == "uk" else name
+        
+        return {
+            "name": local_name,
+            "sign": data["sign"],
+            "house": house_num,
+            "degree": data.get("degree", 0.0),
+            "is_retrograde": False, 
+            "description": get_planet_meaning(name, data["sign"], house_str, language)
+        }
+
+    planets_data = chart.get("planets", {})
+    
+    # 3. Збираємо Велику Трійку (Сонце, Місяць, Асцендент)
+    big_three = []
+    if "Sun" in planets_data:
+        big_three.append(format_planet("Sun", planets_data["Sun"]))
+    if "Moon" in planets_data:
+        big_three.append(format_planet("Moon", planets_data["Moon"]))
+        
+    asc_sign = chart.get("ascendant", {}).get("sign", "Unknown")
+    asc_degree = chart.get("ascendant", {}).get("degree", 0.0)
+    asc_desc = f"Ваш Асцендент у знаку {asc_sign} формує вашу зовнішню особистість." if language == "uk" else f"Your Ascendant in {asc_sign} shapes your outward personality."
+    
+    big_three.append({
+        "name": "Асцендент" if language == "uk" else "Ascendant",
+        "sign": asc_sign,
+        "house": 1,
+        "degree": asc_degree,
+        "is_retrograde": False,
+        "description": asc_desc
+    })
+
+    # 4. Збираємо інші планети
+    other_planets = []
+    for p in ["Mercury", "Venus", "Mars", "Jupiter", "Saturn"]:
+        if p in planets_data:
+            other_planets.append(format_planet(p, planets_data[p]))
+
+    # 5. Віддаємо ідеальний формат!
+    return {
+        "big_three": big_three,
+        "planets": other_planets
     }
+    
 @app.post("/compatibility")
 def get_compatibility(data: dict):
     """
