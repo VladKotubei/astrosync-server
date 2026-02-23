@@ -68,7 +68,7 @@ def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="e
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=200,
+            max_tokens=500,
             temperature=0.7 # Трохи креативності, але без "галюцинацій"
         )
         return response.choices[0].message.content.strip()
