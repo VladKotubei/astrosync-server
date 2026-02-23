@@ -373,10 +373,9 @@ def get_daily_insight(date: str, language: str = "en"):
         insight = "Енергія цього дня вимагає балансу та обережності у прийнятті рішень." if language == "uk" else "The energy of this day requires balance and caution in decision making."
         
     return {"date": date, "insight": insight}
-@app.route('/ai-astrologer', methods=['POST'])
-def ai_astrologer():
+@app.post('/ai-astrologer')
+def ai_astrologer(data: dict):
     try:
-        data = request.json
         question = data.get('question', '')
         name = data.get('name', 'Мандрівник')
         birth_date = data.get('birth_date', 'невідомо')
@@ -397,9 +396,9 @@ def ai_astrologer():
         4. NEVER say "As an AI model" or "I don't have feelings". Act completely as a cosmic guide.
         """
         
-        # Відправляємо запит до OpenAI (використовуємо gpt-4o-mini або gpt-3.5-turbo для швидкості)
+        # Відправляємо запит до OpenAI
         response = client.chat.completions.create(
-            model="gpt-4o-mini", # Якщо в тебе старий пакет openai, зміни на "gpt-3.5-turbo"
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
@@ -410,12 +409,12 @@ def ai_astrologer():
         
         answer = response.choices[0].message.content
         
-        return jsonify({"answer": answer})
+        return {"answer": answer}
         
     except Exception as e:
         print(f"❌ Error in AI Astrologer: {e}")
-        error_msg = "Космічний зв'язок на мить перервався. Зорі потребують часу. Спробуйте ще раз." if language == "uk" else "Cosmic connection lost. The stars need time. Try again."
-        return jsonify({"answer": error_msg}), 500
+        error_msg = "Космічний зв'язок на мить перервався. Зорі потребують часу. Спробуйте ще раз." if data.get('language') == "uk" else "Cosmic connection lost. The stars need time. Try again."
+        return {"answer": error_msg}
     
 if __name__ == "__main__":
     import os
