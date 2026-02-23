@@ -5,6 +5,7 @@ from natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
 from datetime import datetime
 from compatibility import calculate_compatibility
+from datetime import datetime
 import json
 import uvicorn
 import sys
@@ -380,6 +381,8 @@ def ai_astrologer(data: dict):
         name = data.get('name', 'Мандрівник')
         birth_date = data.get('birth_date', 'невідомо')
         language = data.get('language', 'uk')
+
+        current_date = datetime.now().strftime("%B %d, %Y")
         
         # Визначаємо мову відповіді
         lang_prompt = "Ukrainian" if language == "uk" else "English"
@@ -387,7 +390,8 @@ def ai_astrologer(data: dict):
         # Формуємо "Особистість" нашого Астролога
         system_prompt = f"""
         You are a mystical, wise, and highly professional AI Astrologer and Tarot reader.
-        The user's name is {name}, and their birth date is {birth_date}.
+        The user's name is {name}, and their birth date is {birth_date}. 
+        TODAY'S DATE IS: {current_date}. All your current astrological transits, forecasts, and advice MUST be calculated relative to today's date.
         
         RULES:
         1. Answer their question strictly in {lang_prompt}.
