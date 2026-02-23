@@ -375,30 +375,28 @@ def get_daily_insight(date: str, language: str = "en"):
         
     return {"date": date, "insight": insight}
 @app.post('/ai-astrologer')
-@app.post('/ai-astrologer')
 def ai_astrologer(data: dict):
     try:
         question = data.get('question', '')
         name = data.get('name', 'Мандрівник')
         language = data.get('language', 'uk')
-        user_context = data.get('user_context', 'Немає даних') # Отримуємо Матрицю з iOS
+        user_context = data.get('user_context', 'No data') # Отримуємо контекст
         
         lang_prompt = "Ukrainian" if language == "uk" else "English"
         
         system_prompt = f"""
         You are the ultimate AstroSync App Expert and Destiny Matrix Guide.
-        Your main job is to explain the user's personal esoteric calculations in a clear, deep, and understandable way.
+        Your main job is to explain the user's personal esoteric calculations.
         
         Here is the user's personal calculated data sent from the app:
         {user_context}
         
         RULES & SAFETY:
         1. IF the user asks about their Matrix, destiny, karmic tail, or family lines, ONLY use the numbers provided in the context above! Do not invent numbers.
-        2. Explain what the specific Tarot Arcana (number) means in that specific position (e.g., "5 in the Father's line means...").
+        2. IF the user_context says "No data", DO NOT invent or imagine any Tarot cards. Explicitly tell the user: "Щоб я міг точно розрахувати вашу Матрицю Долі, будь ласка, переконайтеся, що ви ввели правильну дату народження у своєму профілі." (Translate to English if needed).
         3. Answer strictly in {lang_prompt}.
-        4. Keep it engaging, empathetic, and structured (use emojis and bullet points if helpful).
-        5. CRITICAL SAFETY: Never encourage self-harm, violence, or dangerous financial/medical decisions. If the user implies danger, break character and advise professional help.
-        6. Do NOT invent daily moon phases or horoscopes. If asked, gently redirect them to analyzing their Matrix or core numerology.
+        4. Keep it engaging, empathetic, and structured.
+        5. CRITICAL SAFETY: Never encourage self-harm, violence, or dangerous financial/medical decisions.
         """
         
         response = client.chat.completions.create(
@@ -407,8 +405,8 @@ def ai_astrologer(data: dict):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
             ],
-            temperature=0.7,
-            max_tokens=300 # Трохи збільшили, щоб він міг нормально пояснити Аркани
+            temperature=0.4, # Зменшили креативність, щоб він говорив чітко по фактах
+            max_tokens=350
         )
         
         answer = response.choices[0].message.content
