@@ -5,6 +5,7 @@ from natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
 from datetime import datetime
 from compatibility import calculate_compatibility
+import json
 import uvicorn
 import sys
 import os
@@ -279,6 +280,67 @@ def get_quantum_field(latitude: float = 50.45, longitude: float = 30.52):
     result = calculate_quantum_state(latitude, longitude)
     if not result:
         return {"error": "Quantum field fluctuation error"}
+    return result
+# --- SMART PLANNER (ШІ-Астролог для задач) ---
+
+def evaluate_planner_task(task: str, target_date: str, birth_date: str, language: str = "en"):
+    """
+    Аналізує конкретну задачу на конкретний день і повертає JSON з оцінкою (0-100).
+    """
+    lang_instruction = "Ukrainian" if language == "uk" else "English"
+    
+    system_prompt = f"""You are an elite astrological time-management coach. 
+    You evaluate if a specific date is favorable for a user's specific task based on astrology and numerology.
+    You MUST respond ONLY with a valid JSON object. Do not include any markdown formatting like ```json."""
+    
+    user_prompt = f"""
+    Task to evaluate: "{task}"
+    Target Date for Task: {target_date}
+    User's Birth Date: {birth_date}
+    
+    Analyze the astrological and numerological compatibility of this task for this specific date.
+    Return a JSON object with EXACTLY these three keys:
+    1. "score": an integer from 0 to 100 representing how favorable the day is (100 is perfect, 0 is terrible).
+    2. "verdict": 2 short sentences explaining the astrological/numerological reason why, in {lang_instruction}. Use 1-2 emojis.
+    3. "advice": 1 practical sentence on what to do (e.g., "Do it confidently" or "Reschedule to next week"), in {lang_instruction}.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=300,
+            temperature=0.7,
+            response_format={"type": "json_object"} # ⬅️ Змушуємо ШІ віддавати чистий код
+        )
+        # Перетворюємо відповідь ШІ у словник Python
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        print(f"⚠️ Planner AI Error: {e}")
+        # Запасний варіант, якщо ШІ не відповів
+        return {
+            "score": 50,
+            "verdict": "Енергія дня нейтральна. Зірки радять покладатися на власну інтуїцію." if language == "uk" else "The energy is neutral. Rely on your intuition.",
+            "advice": "Дійте обережно і майте запасний план." if language == "uk" else "Proceed with caution and have a backup plan."
+        }
+
+@app.post("/smart-planner")
+def smart_planner_endpoint(data: dict):
+    """
+    Ендпоінт для iOS додатку. Приймає JSON із задачею і повертає аналіз.
+    """
+    task = data.get("task")
+    target_date = data.get("target_date")
+    birth_date = data.get("birth_date")
+    language = data.get("language", "en")
+    
+    if not all([task, target_date, birth_date]):
+        return {"error": "Missing required fields (task, target_date, birth_date)"}
+        
+    result = evaluate_planner_task(task, target_date, birth_date, language)
     return result
     
 if __name__ == "__main__":
