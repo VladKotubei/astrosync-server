@@ -342,6 +342,37 @@ def smart_planner_endpoint(data: dict):
         
     result = evaluate_planner_task(task, target_date, birth_date, language)
     return result
+@app.get("/daily-insight")
+def get_daily_insight(date: str, language: str = "en"):
+    """
+    Генерує унікальну пораду від ШІ для конкретного дня у календарі.
+    Доступно тільки для PRO та ELITE користувачів додатку.
+    """
+    lang_instruction = "Ukrainian" if language == "uk" else "English"
+    system_prompt = f"You are an elite astro-coach. Respond strictly in {lang_instruction}."
+    
+    user_prompt = f"""
+    Analyze the general astrological energy for the date: {date}.
+    Write a short, inspiring 2-sentence forecast for this specific day. 
+    Use 1-2 emojis. Keep it professional and actionable. Do not use generic greetings.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        insight = response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"⚠️ Daily Insight AI Error: {e}")
+        insight = "Енергія цього дня вимагає балансу та обережності у прийнятті рішень." if language == "uk" else "The energy of this day requires balance and caution in decision making."
+        
+    return {"date": date, "insight": insight}
     
 if __name__ == "__main__":
     import os
