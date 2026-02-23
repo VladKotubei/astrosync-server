@@ -406,7 +406,7 @@ def ai_astrologer(data: dict):
                 {"role": "user", "content": question}
             ],
             temperature=0.4, # Зменшили креативність, щоб він говорив чітко по фактах
-            max_tokens=350
+            max_tokens=1000
         )
         
         answer = response.choices[0].message.content
