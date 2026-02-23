@@ -375,32 +375,30 @@ def get_daily_insight(date: str, language: str = "en"):
         
     return {"date": date, "insight": insight}
 @app.post('/ai-astrologer')
+@app.post('/ai-astrologer')
 def ai_astrologer(data: dict):
     try:
         question = data.get('question', '')
         name = data.get('name', 'Мандрівник')
-        birth_date = data.get('birth_date', 'невідомо')
         language = data.get('language', 'uk')
-        
-        current_date = datetime.now().strftime("%B %d, %Y")
+        user_context = data.get('user_context', 'Немає даних') # Отримуємо Матрицю з iOS
         
         lang_prompt = "Ukrainian" if language == "uk" else "English"
         
         system_prompt = f"""
-        You are a mystical, wise, and highly professional AI Astrologer and Tarot reader.
-        The user's name is {name}, and their birth date is {birth_date}.
-        TODAY'S DATE IS: {current_date}. 
+        You are the ultimate AstroSync App Expert and Destiny Matrix Guide.
+        Your main job is to explain the user's personal esoteric calculations in a clear, deep, and understandable way.
         
-        CRITICAL SAFETY AND ETHICS DIRECTIVE (ABSOLUTE PRIORITY OVER EVERYTHING ELSE):
-        1. You must NEVER, under any circumstances, encourage, endorse, or suggest any actions that could lead to physical harm, self-harm, suicide, violence, abuse, or illegal activities.
-        2. If the user implies or states an intention to harm themselves or others (e.g., "my intuition tells me to jump out a window", "should I hurt someone"), you MUST immediately drop the mystical persona. Firmly and explicitly state that this is a dangerous thought, refuse to support it, and urge them to seek professional help or talk to a loved one immediately.
-        3. Never give medical diagnoses, psychological prescriptions, or specific financial/investment directives (e.g., "invest all your money in crypto").
+        Here is the user's personal calculated data sent from the app:
+        {user_context}
         
-        CONVERSATIONAL RULES:
-        1. Answer their question strictly in {lang_prompt}.
-        2. Keep your answer concise (2-4 sentences max), as it is a quick chat message.
-        3. Make the tone mysterious, empathetic, but give real practical advice based on general astrological transits or numerology for their birth date.
-        4. NEVER say "As an AI model" or "I don't have feelings" (unless you are enforcing the Critical Safety Directive above). Act completely as a cosmic guide in all safe contexts.
+        RULES & SAFETY:
+        1. IF the user asks about their Matrix, destiny, karmic tail, or family lines, ONLY use the numbers provided in the context above! Do not invent numbers.
+        2. Explain what the specific Tarot Arcana (number) means in that specific position (e.g., "5 in the Father's line means...").
+        3. Answer strictly in {lang_prompt}.
+        4. Keep it engaging, empathetic, and structured (use emojis and bullet points if helpful).
+        5. CRITICAL SAFETY: Never encourage self-harm, violence, or dangerous financial/medical decisions. If the user implies danger, break character and advise professional help.
+        6. Do NOT invent daily moon phases or horoscopes. If asked, gently redirect them to analyzing their Matrix or core numerology.
         """
         
         response = client.chat.completions.create(
@@ -410,16 +408,15 @@ def ai_astrologer(data: dict):
                 {"role": "user", "content": question}
             ],
             temperature=0.7,
-            max_tokens=150
+            max_tokens=300 # Трохи збільшили, щоб він міг нормально пояснити Аркани
         )
         
         answer = response.choices[0].message.content
-        
         return {"answer": answer}
         
     except Exception as e:
-        print(f"❌ Error in AI Astrologer: {e}")
-        error_msg = "Космічний зв'язок на мить перервався. Зорі потребують часу. Спробуйте ще раз." if data.get('language') == "uk" else "Cosmic connection lost. The stars need time. Try again."
+        print(f"❌ Error in Astro Expert: {e}")
+        error_msg = "Експерт зараз аналізує дані інших зірок. Спробуйте через хвилинку." if data.get('language') == "uk" else "The expert is busy. Try again in a minute."
         return {"answer": error_msg}
     
 if __name__ == "__main__":
