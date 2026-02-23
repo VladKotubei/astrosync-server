@@ -35,18 +35,30 @@ app = FastAPI()
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="en"):
-    """Generates an elite strategy via OpenAI in selected language."""
+    """Generates an elite structured strategy via OpenAI."""
     
-    lang_instruction = "English" if language == "en" else "Ukrainian"
+    # Головна мова додатку - Англійська. Українська тільки якщо чітко вказано "uk"
+    lang_instruction = "Ukrainian" if language == "uk" else "English"
     
-    system_prompt = f"You are an expert astro-strategist for the AstroSync app. Always respond in {lang_instruction}."
+    system_prompt = f"You are an elite astrologer and life coach for successful individuals. Your primary language is English, but you must respond EXACTLY in {lang_instruction}."
+    
     user_prompt = f"""
-    Client: {name}
-    Zodiac: {zodiac}
-    CONTEXT: Current Moon: {current_moon}, Personal Day: {p_day}, Personal Year: {p_year}.
-    TASK: Write a 2-sentence strategy. Synthesize the moon and the day number.
-    Tone: Professional, elite. 
-    Language: {lang_instruction} (IMPORTANT: Reply ONLY in {lang_instruction}!)
+    Client Data:
+    - Name: {name}
+    - Zodiac Sign: {zodiac}
+    - Current Moon Phase: {current_moon}
+    - Numerology Personal Day: {p_day}
+    - Numerology Personal Year: {p_year}
+
+    Task: Write a short, powerful, and stylish daily forecast in {lang_instruction}.
+    Do not use fluff, clichés, or generic greetings. Be specific, actionable, and profound.
+    
+    You MUST use exactly this structure with these emojis (translate the category names if the requested language is {lang_instruction}, but keep the emojis):
+
+    ⚡️ Energy: (1 short sentence about the main vibe based on the Moon and Personal Day)
+    🎯 Focus: (What specifically to do today / where to direct energy)
+    🚫 Avoid: (What actions, thoughts, or people to stay away from today)
+    💡 Insight: (A deep, philosophical or motivational thought of the day)
     """
     
     try:
@@ -56,12 +68,16 @@ def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="e
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=150
+            max_tokens=200,
+            temperature=0.7 # Трохи креативності, але без "галюцинацій"
         )
-        return response.choices[0].message.content
+        return response.choices[0].message.content.strip()
     except Exception as e:
         print(f"⚠️ OpenAI Error: {e}")
-        return f"Focus on your personal power today (Day {p_day}). The universe supports your journey."
+        # Якщо сталася помилка сервера, віддаємо красиву заглушку правильною мовою
+        if language == "uk":
+            return "⚡️ Енергія: Фокус на внутрішній силі.\n🎯 Фокус: Дисципліна та структура.\n🚫 Уникати: Хаосу та відволікань.\n💡 Інсайт: Всесвіт підтримує ваш шлях, коли ви знаєте свою мету."
+        return "⚡️ Energy: Focus on your personal power.\n🎯 Focus: Discipline and structure.\n🚫 Avoid: Chaos and distractions.\n💡 Insight: The universe supports your journey when you know your destination."
 
 @app.get("/")
 def home():
