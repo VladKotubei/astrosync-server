@@ -373,6 +373,49 @@ def get_daily_insight(date: str, language: str = "en"):
         insight = "Енергія цього дня вимагає балансу та обережності у прийнятті рішень." if language == "uk" else "The energy of this day requires balance and caution in decision making."
         
     return {"date": date, "insight": insight}
+@app.route('/ai-astrologer', methods=['POST'])
+def ai_astrologer():
+    try:
+        data = request.json
+        question = data.get('question', '')
+        name = data.get('name', 'Мандрівник')
+        birth_date = data.get('birth_date', 'невідомо')
+        language = data.get('language', 'uk')
+        
+        # Визначаємо мову відповіді
+        lang_prompt = "Ukrainian" if language == "uk" else "English"
+        
+        # Формуємо "Особистість" нашого Астролога
+        system_prompt = f"""
+        You are a mystical, wise, and highly professional AI Astrologer and Tarot reader.
+        The user's name is {name}, and their birth date is {birth_date}.
+        
+        RULES:
+        1. Answer their question strictly in {lang_prompt}.
+        2. Keep your answer concise (2-4 sentences max), as it is a quick chat message.
+        3. Make the tone mysterious, empathetic, but give real practical advice based on general astrological transits or numerology for their birth date.
+        4. NEVER say "As an AI model" or "I don't have feelings". Act completely as a cosmic guide.
+        """
+        
+        # Відправляємо запит до OpenAI (використовуємо gpt-4o-mini або gpt-3.5-turbo для швидкості)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini", # Якщо в тебе старий пакет openai, зміни на "gpt-3.5-turbo"
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        answer = response.choices[0].message.content
+        
+        return jsonify({"answer": answer})
+        
+    except Exception as e:
+        print(f"❌ Error in AI Astrologer: {e}")
+        error_msg = "Космічний зв'язок на мить перервався. Зорі потребують часу. Спробуйте ще раз." if language == "uk" else "Cosmic connection lost. The stars need time. Try again."
+        return jsonify({"answer": error_msg}), 500
     
 if __name__ == "__main__":
     import os
