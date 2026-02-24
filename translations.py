@@ -2,152 +2,84 @@
 
 TRANSLATIONS = {
     "en": {
-        # Life Path описи
         "life_path": {
-            1: "The Leader. Independent, ambitious, and innovative. You're a natural pioneer who creates your own path.",
-            2: "The Peacemaker. Diplomatic, sensitive, and cooperative. You excel at building harmony and partnerships.",
-            3: "The Creative. Expressive, optimistic, and artistic. You bring joy and inspiration to others.",
-            4: "The Builder. Practical, disciplined, and hardworking. You create solid foundations and lasting structures.",
-            5: "The Adventurer. Dynamic, freedom-loving, and versatile. You thrive on change and new experiences.",
-            6: "The Nurturer. Responsible, caring, and family-oriented. You bring healing and balance to your community.",
-            7: "The Seeker. Analytical, spiritual, and introspective. You search for deeper truths and wisdom.",
-            8: "The Powerhouse. Ambitious, authoritative, and material-focused. You achieve great success through determination.",
-            9: "The Humanitarian. Compassionate, idealistic, and philanthropic. You serve the greater good.",
-            11: "The Visionary. Intuitive, inspirational, and enlightened. You're a spiritual messenger with profound insights.",
-            22: "The Master Builder. Practical visionary who turns dreams into reality on a grand scale.",
-            33: "The Master Teacher. Selfless, nurturing guide who uplifts humanity through compassion."
+            1: "The Leader. Independent and ambitious.",
+            2: "The Peacemaker. Diplomatic and sensitive.",
+            3: "The Creative. Expressive and optimistic.",
+            4: "The Builder. Practical and disciplined.",
+            5: "The Adventurer. Dynamic and freedom-loving.",
+            6: "The Nurturer. Responsible and caring.",
+            7: "The Seeker. Analytical and spiritual.",
+            8: "The Powerhouse. Ambitious and material-focused.",
+            9: "The Humanitarian. Compassionate and idealistic.",
+            11: "The Visionary. Intuitive and inspirational.",
+            22: "The Master Builder. Practical visionary.",
+            33: "The Master Teacher. Selfless and nurturing."
         },
-        
-        # Soul Number описи
-        "soul": {
-            1: "You crave independence and leadership. Deep down, you want to be first and make your mark.",
-            2: "You desire peace and partnership. Your soul seeks harmony and meaningful connections.",
-            3: "You yearn for creative expression. Your inner self wants to inspire and bring joy.",
-            4: "You need stability and structure. Your soul finds peace in building and organizing.",
-            5: "You seek freedom and adventure. Your inner spirit craves variety and exploration.",
-            6: "You desire to nurture and help others. Your soul finds purpose in service and care.",
-            7: "You crave knowledge and spiritual growth. Your inner self seeks deeper understanding.",
-            8: "You desire success and recognition. Your soul wants to achieve and prosper.",
-            9: "You yearn to make a difference. Your inner self wants to serve humanity.",
-            11: "You desire spiritual enlightenment. Your soul seeks to inspire and uplift.",
-            22: "You dream of building something lasting. Your inner visionary wants to create legacy.",
-            33: "You seek to heal and teach. Your soul's purpose is compassionate service."
-        },
-        
-        # Personality Number описи
-        "personality": {
-            1: "Others see you as confident and independent. You appear as a natural leader.",
-            2: "Others see you as diplomatic and gentle. You appear as a peacemaker.",
-            3: "Others see you as charming and creative. You appear as an entertainer.",
-            4: "Others see you as reliable and practical. You appear as the rock others depend on.",
-            5: "Others see you as exciting and unpredictable. You appear as an adventurer.",
-            6: "Others see you as caring and responsible. You appear as the helper everyone trusts.",
-            7: "Others see you as mysterious and intelligent. You appear as the wise observer.",
-            8: "Others see you as powerful and successful. You appear as someone who gets things done.",
-            9: "Others see you as compassionate and idealistic. You appear as the humanitarian.",
-            11: "Others see you as inspiring and charismatic. You appear as the visionary leader.",
-            22: "Others see you as capable of greatness. You appear as someone destined for big things.",
-            33: "Others see you as a natural healer. You appear as the compassionate guide."
-        },
-        
-        # Personal Day описи
         "day": {
-            1: "Today is about new beginnings. Take initiative and start something fresh.",
-            2: "Today calls for cooperation. Focus on partnerships and diplomatic solutions.",
-            3: "Today favors creativity. Express yourself and enjoy social connections.",
-            4: "Today requires practical work. Build foundations and organize your life.",
-            5: "Today brings change. Embrace new experiences and stay flexible.",
-            6: "Today is for relationships. Nurture your loved ones and create harmony.",
-            7: "Today is introspective. Seek knowledge and spend time in reflection.",
-            8: "Today favors ambition. Make power moves toward your financial goals.",
-            9: "Today calls for completion. Let go of what no longer serves you.",
-            11: "Today is spiritually charged. Pay attention to intuitive insights.",
-            22: "Today supports big visions. Work on your master plan.",
-            33: "Today is about compassionate service. Help others selflessly."
+            1: "Today is a day for new beginnings and bold action.",
+            2: "Today favors cooperation. Focus on partnerships.",
+            3: "Today is for creativity and self-expression.",
+            4: "Today requires practical work and organization.",
+            5: "Today brings change. Stay flexible.",
+            6: "Today is for relationships and family.",
+            7: "Today is for introspection and spiritual growth.",
+            8: "Today favors ambition and financial goals.",
+            9: "Today calls for completion and letting go.",
+            11: "Today is spiritually charged. Trust your intuition.",
+            22: "Today supports big visions and master plans.",
+            33: "Today is about compassionate service to others."
         }
     },
-    
     "uk": {
-        # Life Path описи
         "life_path": {
-            1: "Лідер. Незалежний, амбітний та інноваційний. Ти природжений піонер, що створює свій власний шлях.",
-            2: "Миротворець. Дипломатичний, чутливий та готовий до співпраці. Ти майстерно будуєш гармонію та партнерства.",
-            3: "Творець. Експресивний, оптимістичний та артистичний. Ти приносиш радість та натхнення іншим.",
-            4: "Будівельник. Практичний, дисциплінований та працьовитий. Ти створюєш міцні основи та довготривалі структури.",
-            5: "Мандрівник. Динамічний, свободолюбний та різносторонній. Ти процвітаєш у змінах та нових переживаннях.",
-            6: "Опікун. Відповідальний, турботливий та орієнтований на сім'ю. Ти приносиш зцілення та баланс своїй спільноті.",
-            7: "Шукач. Аналітичний, духовний та інтроспективний. Ти шукаєш глибшої правди та мудрості.",
-            8: "Силовий центр. Амбітний, авторитетний та зосереджений на матеріальному. Ти досягаєш великого успіху через рішучість.",
-            9: "Гуманіст. Співчутливий, ідеалістичний та філантропічний. Ти служиш спільному благу.",
-            11: "Візіонер. Інтуїтивний, надихаючий та просвітлений. Ти духовний посланець з глибокими прозріннями.",
-            22: "Майстер-будівельник. Практичний візіонер, що втілює мрії в реальність у великому масштабі.",
-            33: "Майстер-вчитель. Безкорисливий, турботливий провідник, що піднімає людство через співчуття."
+            1: "Лідер. Незалежний та амбітний.", 2: "Миротворець. Дипломатичний та чуттєвий.",
+            3: "Творець. Експресивний та оптимістичний.", 4: "Будівельник. Практичний та дисциплінований.",
+            5: "Шукач пригод. Динамічний та волелюбний.", 6: "Опікун. Відповідальний та турботливий.",
+            7: "Шукач істини. Аналітичний та духовний.", 8: "Енергетик. Амбітний та сфокусований на успіху.",
+            9: "Гуманіст. Співчутливий та ідеалістичний.", 11: "Провидець. Інтуїтивний та надихаючий.",
+            22: "Майстер-будівельник. Практичний візіонер.", 33: "Майстер-вчитель. Безкорисливий наставник."
         },
-        
-        # Soul Number описи
-        "soul": {
-            1: "Ти жадаєш незалежності та лідерства. У глибині душі ти хочеш бути першим і залишити свій слід.",
-            2: "Ти прагнеш миру та партнерства. Твоя душа шукає гармонії та значущих зв'язків.",
-            3: "Ти жадаєш творчого самовираження. Твоє внутрішнє я хоче надихати та приносити радість.",
-            4: "Тобі потрібна стабільність та структура. Твоя душа знаходить спокій у будівництві та організації.",
-            5: "Ти шукаєш свободи та пригод. Твій внутрішній дух жадає різноманітності та досліджень.",
-            6: "Ти прагнеш піклуватися та допомагати іншим. Твоя душа знаходить ціль у служінні та турботі.",
-            7: "Ти жадаєш знань та духовного зростання. Твоє внутрішнє я шукає глибшого розуміння.",
-            8: "Ти прагнеш успіху та визнання. Твоя душа хоче досягати та процвітати.",
-            9: "Ти хочеш зробити різницю. Твоє внутрішнє я прагне служити людству.",
-            11: "Ти жадаєш духовного просвітлення. Твоя душа прагне надихати та піднімати.",
-            22: "Ти мрієш побудувати щось довговічне. Твій внутрішній візіонер хоче створити спадщину.",
-            33: "Ти прагнеш зцілювати та навчати. Призначення твоєї душі - співчутливе служіння."
-        },
-        
-        # Personality Number описи
-        "personality": {
-            1: "Інші бачать тебе впевненим та незалежним. Ти виглядаєш як природжений лідер.",
-            2: "Інші бачать тебе дипломатичним та м'яким. Ти виглядаєш як миротворець.",
-            3: "Інші бачать тебе чарівним та креативним. Ти виглядаєш як розважальник.",
-            4: "Інші бачать тебе надійним та практичним. Ти виглядаєш як скеля, на яку спираються інші.",
-            5: "Інші бачать тебе захопливим та непередбачуваним. Ти виглядаєш як мандрівник.",
-            6: "Інші бачать тебе турботливим та відповідальним. Ти виглядаєш як помічник, якому всі довіряють.",
-            7: "Інші бачать тебе таємничим та розумним. Ти виглядаєш як мудрий спостерігач.",
-            8: "Інші бачать тебе сильним та успішним. Ти виглядаєш як той, хто доводить справи до кінця.",
-            9: "Інші бачать тебе співчутливим та ідеалістичним. Ти виглядаєш як гуманіст.",
-            11: "Інші бачать тебе надихаючим та харизматичним. Ти виглядаєш як візіонер-лідер.",
-            22: "Інші бачать тебе здатним на велич. Ти виглядаєш як людина, призначена для великих справ.",
-            33: "Інші бачать тебе природним цілителем. Ти виглядаєш як співчутливий провідник."
-        },
-        
-        # Personal Day описи
         "day": {
-            1: "Сьогодні про нові починання. Бери ініціативу та розпочинай щось нове.",
-            2: "Сьогодні час для співпраці. Зосередься на партнерствах та дипломатичних рішеннях.",
-            3: "Сьогодні сприяє творчості. Виражай себе та насолоджуйся соціальними зв'язками.",
-            4: "Сьогодні потребує практичної роботи. Будуй фундаменти та організовуй своє життя.",
-            5: "Сьогодні приносить зміни. Приймай новий досвід і залишайся гнучким.",
-            6: "Сьогодні для стосунків. Плекай своїх близьких та створюй гармонію.",
-            7: "Сьогодні для самоаналізу. Шукай знань та проводь час у роздумах.",
-            8: "Сьогодні сприяє амбіціям. Роби сильні кроки до своїх фінансових цілей.",
-            9: "Сьогодні час завершення. Відпусти те, що вже не служить тобі.",
-            11: "Сьогодні духовно насичений день. Звертай увагу на інтуїтивні прозріння.",
-            22: "Сьогодні підтримує великі візії. Працюй над своїм головним планом.",
-            33: "Сьогодні про співчутливе служіння. Допомагай іншим безкорисливо."
+            1: "День для нових починань та рішучих дій.", 2: "Сприятливий час для співпраці та партнерства.",
+            3: "День творчості та самовираження.", 4: "Час для практичної роботи та організації.",
+            5: "День змін. Будьте гнучкими.", 6: "Приділіть увагу стосункам та сім'ї.",
+            7: "День для самоаналізу та духовного росту.", 8: "Сприятливий день для амбіцій та фінансів.",
+            9: "Час завершення та відпускання старого.", 11: "Духовно насичений день. Довіряйте інтуїції.",
+            22: "День для реалізації великих планів.", 33: "Час для безкорисливої допомоги іншим."
         }
+    },
+    "es": {
+        "life_path": { 1: "El Líder. Independiente.", 2: "El Pacificador. Diplomático.", 3: "El Creativo. Optimista.", 4: "El Constructor. Práctico.", 5: "El Aventurero. Dinámico.", 6: "El Cuidador. Responsable.", 7: "El Buscador. Espiritual.", 8: "El Poderoso. Ambicioso.", 9: "El Humanitario. Compasivo.", 11: "El Visionario. Intuitivo.", 22: "El Maestro Constructor.", 33: "El Maestro Maestro." },
+        "day": { 1: "Día de nuevos comienzos.", 2: "Día de cooperación.", 3: "Día de creatividad.", 4: "Día de trabajo práctico.", 5: "Día de cambios.", 6: "Día para la familia.", 7: "Día de introspección.", 8: "Día de ambición.", 9: "Día de finalización.", 11: "Día espiritual.", 22: "Día de grandes visiones.", 33: "Día de servicio compasivo." }
+    },
+    "it": {
+        "life_path": { 1: "Il Leader. Indipendente.", 2: "Il Pacificatore. Diplomatico.", 3: "Il Creativo. Ottimista.", 4: "Il Costruttore. Pratico.", 5: "L'Avventuriero. Dinamico.", 6: "Il Custode. Responsabile.", 7: "Il Cercatore. Spirituale.", 8: "Il Potente. Ambizioso.", 9: "L'Umanitario. Compassionevole.", 11: "Il Visionario. Intuitivo.", 22: "Il Maestro Costruttore.", 33: "Il Maestro Insegnante." },
+        "day": { 1: "Giorno di nuovi inizi.", 2: "Giorno di cooperazione.", 3: "Giorno di creatività.", 4: "Giorno di lavoro pratico.", 5: "Giorno di cambiamenti.", 6: "Giorno per la famiglia.", 7: "Giorno di introspezione.", 8: "Giorno di ambizione.", 9: "Giorno di completamento.", 11: "Giorno spirituale.", 22: "Giorno di grandi visioni.", 33: "Giorno di servizio compassionevole." }
+    },
+    "de": {
+        "life_path": { 1: "Der Anführer. Unabhängig.", 2: "Der Friedensstifter. Diplomatisch.", 3: "Der Kreative. Optimistisch.", 4: "Der Erbauer. Praktisch.", 5: "Der Abenteurer. Dynamisch.", 6: "Der Betreuer. Verantwortlich.", 7: "Der Suchende. Spirituell.", 8: "Das Kraftpaket. Ehrgeizig.", 9: "Der Humanist. Mitfühlend.", 11: "Der Visionär. Intuitiv.", 22: "Der Baumeister.", 33: "Der Meisterlehrer." },
+        "day": { 1: "Tag für Neuanfänge.", 2: "Tag der Zusammenarbeit.", 3: "Tag der Kreativität.", 4: "Tag für praktische Arbeit.", 5: "Tag der Veränderungen.", 6: "Tag für die Familie.", 7: "Tag der Selbstreflexion.", 8: "Tag des Ehrgeizes.", 9: "Tag des Abschlusses.", 11: "Spiritueller Tag.", 22: "Tag für große Visionen.", 33: "Tag des mitfühlenden Dienstes." }
+    },
+    "pl": {
+        "life_path": { 1: "Lider. Niezależny.", 2: "Rozjemca. Dyplomatyczny.", 3: "Twórca. Optymistyczny.", 4: "Budowniczy. Praktyczny.", 5: "Poszukiwacz przygód. Dynamiczny.", 6: "Opiekun. Odpowiedzialny.", 7: "Poszukiwacz. Duchowy.", 8: "Mocarz. Ambitny.", 9: "Humanista. Współczujący.", 11: "Wizjoner. Intuicyjny.", 22: "Mistrz Budowniczy.", 33: "Mistrz Nauczyciel." },
+        "day": { 1: "Dzień nowych początków.", 2: "Dzień współpracy.", 3: "Dzień kreatywności.", 4: "Dzień praktycznej pracy.", 5: "Dzień zmian.", 6: "Dzień dla rodziny.", 7: "Dzień introspekcji.", 8: "Dzień ambicji.", 9: "Dzień zakończeń.", 11: "Dzień duchowy.", 22: "Dzień wielkich wizji.", 33: "Dzień współczującej służby." }
+    },
+    "ru": {
+        "life_path": { 1: "Лидер. Независимый.", 2: "Миротворец. Дипломатичный.", 3: "Творец. Оптимистичный.", 4: "Строитель. Практичный.", 5: "Искатель приключений.", 6: "Опекун. Ответственный.", 7: "Искатель истины.", 8: "Энергетик. Амбициозный.", 9: "Гуманист. Сострадательный.", 11: "Провидец. Интуитивный.", 22: "Мастер-строитель.", 33: "Мастер-учитель." },
+        "day": { 1: "День новых начинаний.", 2: "День сотрудничества.", 3: "День творчества.", 4: "День практической работы.", 5: "День перемен.", 6: "День для семьи.", 7: "День самоанализа.", 8: "День амбиций.", 9: "День завершения.", 11: "Духовный день.", 22: "День больших планов.", 33: "День бескорыстной помощи." }
     }
 }
 
 def get_description(number, category, language="en"):
     """
-    Отримати опис числа
-    
-    Args:
-        number: число (1-9, 11, 22, 33)
-        category: категорія ("life_path", "soul", "personality", "day")
-        language: мова ("en", "uk")
-    
-    Returns:
-        str: опис числа
+    Отримує переклад для конкретного числа і категорії.
+    Якщо мови або категорії немає, повертає англійську.
     """
-    try:
-        return TRANSLATIONS[language][category][number]
-    except KeyError:
-        # Якщо переклад не знайдено - повертаємо англійський
-        return TRANSLATIONS["en"][category].get(number, "Description not available.")
+    lang_dict = TRANSLATIONS.get(language, TRANSLATIONS["en"])
+    
+    # Спрощення для душі та особистості (використовуємо описи life_path)
+    cat_key = "life_path" if category in ["soul", "personality", "life_path"] else "day"
+    
+    category_dict = lang_dict.get(cat_key, TRANSLATIONS["en"][cat_key])
+    return category_dict.get(number, category_dict.get(1, "No data"))
