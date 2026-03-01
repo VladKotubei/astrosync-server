@@ -367,6 +367,33 @@ def get_angel_numbers(birth_date: str, language: str = "en"):
         "angel_number": angel_num,
         "premium_description": premium_text
     }
+@app.get("/moon-widget")
+def get_moon_widget(language: str = "en"):
+    """Ендпоінт для віджета Місяця на Головному Екрані"""
+    # Отримуємо сьогоднішню дату
+    today_slash = datetime.now().strftime("%Y/%m/%d")
+    
+    # Визначаємо фазу місяця (функція вже є у твоєму astro_basic.py)
+    current_moon = get_moon_phase(today_slash)
+    
+    # Просимо ШІ дати дуже коротку пораду на день (1 речення)
+    lang_instruction = LANGUAGES.get(language, "English")
+    system_prompt = f"You are a lunar astrologer. The current moon phase is {current_moon}. Write ONE short, mystical, and inspiring sentence of advice for today based on this phase. Respond strictly in {lang_instruction}."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_prompt}],
+            max_tokens=60, temperature=0.7
+        )
+        moon_advice = response.choices[0].message.content.strip()
+    except Exception:
+        moon_advice = "Слухай свою інтуїцію сьогодні. Енергія місяця на твоєму боці." if language in ["uk", "ru"] else "Listen to your intuition today."
+        
+    return {
+        "moon_phase": current_moon,
+        "advice": moon_advice
+    }
     
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
