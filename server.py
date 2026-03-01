@@ -5,6 +5,7 @@ from natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
 from datetime import datetime
 from compatibility import calculate_compatibility
+from angel_numbers import calculate_angel_number
 import json
 import uvicorn
 import sys
@@ -338,6 +339,34 @@ def ai_astrologer(data: dict):
             "ru": "Эксперт сейчас занят. Попробуйте через минуту."
         }
         return {"answer": errors.get(data.get('language', 'en'), errors["en"])}
+    
+    @app.get("/angel-numbers")
+def get_angel_numbers(birth_date: str, language: str = "en"):
+    """Ендпоінт для розрахунку Числа Ангела та генерації преміум-тексту"""
+    
+    # 1. Отримуємо математичний розрахунок (наприклад, "111")
+    calc_result = calculate_angel_number(birth_date)
+    angel_num = calc_result["angel_number"]
+    
+    # 2. Генеруємо преміум-розшифровку через ШІ
+    lang_instruction = LANGUAGES.get(language, "English")
+    system_prompt = f"You are an elite numerologist. The user's angel number is {angel_num}. Write a mystical and inspiring 3-sentence reading about what this number means for their destiny. Respond strictly in {lang_instruction}."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_prompt}],
+            max_tokens=250, temperature=0.7
+        )
+        premium_text = response.choices[0].message.content.strip()
+    except Exception:
+        premium_text = "Твоя доля кличе тебе. Довірся Всесвіту та енергії чисел."
+        
+    # 3. Віддаємо дані в додаток
+    return {
+        "angel_number": angel_num,
+        "premium_description": premium_text
+    }
     
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
