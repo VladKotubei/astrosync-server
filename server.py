@@ -301,8 +301,8 @@ def get_daily_insight(date: str, language: str = "en"):
         
     return {"date": date, "insight": insight}
 
-@app.post('/ai-astrologer')
-def ai_astrologer(data: dict):
+@app.post('/ai-appcoach')
+def ai_appcoach(data: dict):
     try:
         question, name, language, user_context = data.get('question', ''), data.get('name', 'Мандрівник'), data.get('language', 'uk'), data.get('user_context', 'No data')
         lang_prompt = LANGUAGES.get(language, "English")
@@ -340,7 +340,7 @@ def ai_astrologer(data: dict):
         }
         return {"answer": errors.get(data.get('language', 'en'), errors["en"])}
     
-    @app.get("/angel-numbers")
+@app.get("/angel-numbers")
 def get_angel_numbers(birth_date: str, language: str = "en"):
     """Ендпоінт для розрахунку Числа Ангела та генерації преміум-тексту"""
     
