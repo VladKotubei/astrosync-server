@@ -155,6 +155,7 @@ def get_today_energy():
 
 @app.get("/natal-chart")
 def get_natal_chart(birth_date: str, birth_time: str, latitude: float, longitude: float, tz: str = "UTC", language: str = "en"):
+    # tz приймається для сумісності, але поки не передається в calculate_natal_chart (там UTC)
     chart = calculate_natal_chart(birth_date, birth_time, latitude, longitude)
     
     if not chart:
