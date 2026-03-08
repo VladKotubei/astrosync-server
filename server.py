@@ -305,30 +305,118 @@ def get_daily_insight(date: str, language: str = "en"):
 @app.post('/ai-appcoach')
 def ai_appcoach(data: dict):
     try:
-        question, name, language, user_context = data.get('question', ''), data.get('name', 'Мандрівник'), data.get('language', 'uk'), data.get('user_context', 'No data')
+        question    = data.get('question', '')
+        name        = data.get('name', 'Мандрівник')
+        language    = data.get('language', 'uk')
+        # Legacy field from the global AIАppCoachView
+        user_context  = data.get('user_context', '')
+        # New contextual fields from FloatingAIChatButton screens
+        module_name   = data.get('module_name', '').strip()
+        context_data  = data.get('context_data', '')
+
         lang_prompt = LANGUAGES.get(language, "English")
-        
+
+        # Merge legacy matrix context + new screen context into one block
+        full_context = "\n".join(filter(None, [user_context, context_data])) or "No data"
+
+        # --- Module-specific expert personas ---
+        MODULE_EXPERTS = {
+            # Ukrainian names
+            "Натальна Карта": (
+                "You are an elite Vedic and Western astrologer. "
+                "Your ONLY domain is Natal Charts (birth charts): planetary positions, houses, aspects, and their life implications. "
+                "You interpret the Big Three (Sun, Moon, Ascendant) and all planetary placements with depth and precision."
+            ),
+            "Матриця Долі": (
+                "You are the world's leading Destiny Matrix expert (22 Major Arcana system). "
+                "Your ONLY domain is the Destiny Matrix: arcana meanings, karma, family lines (father/mother), "
+                "comfort zone, social mask, talents, material karma, and life purpose calculations."
+            ),
+            "Сумісність": (
+                "You are a Synastry and Relationship Astrology specialist. "
+                "Your ONLY domain is astrological compatibility between two people: synastry overlays, "
+                "karmic connections, romantic/emotional/spiritual/mental scores, and relationship advice."
+            ),
+            "Ангельські Числа": (
+                "You are a master numerologist specialising exclusively in Angel Numbers. "
+                "Your ONLY domain is angel numbers: their vibrational meaning, spiritual messages, "
+                "and how they guide daily decisions and the life path."
+            ),
+            "Smart Планувальник": (
+                "You are an astrological time-management coach. "
+                "Your ONLY domain is the Smart Planner: evaluating whether specific dates are favorable "
+                "for specific tasks using astrology and numerology, and optimising life planning."
+            ),
+            "Нумерологія": (
+                "You are a master numerologist covering Pythagorean, Chaldean, Kabbalistic, and Chinese systems. "
+                "Your ONLY domain is numerology: life path numbers, soul numbers, name vibrations, "
+                "personal year charts, and their influence on personality and destiny."
+            ),
+            "AstroSync": (
+                "You are the ultimate AstroSync App Expert — a guide across all esoteric modules: "
+                "astrology, numerology, Destiny Matrix, compatibility, and cosmic planning."
+            ),
+            # English names (mirror)
+            "Natal Chart": (
+                "You are an elite Vedic and Western astrologer. "
+                "Your ONLY domain is Natal Charts: planetary positions, houses, aspects, and their life implications."
+            ),
+            "Destiny Matrix": (
+                "You are the world's leading Destiny Matrix expert (22 Major Arcana system). "
+                "Your ONLY domain is the Destiny Matrix: arcana meanings, karma, family lines, and life purpose."
+            ),
+            "Compatibility": (
+                "You are a Synastry and Relationship Astrology specialist. "
+                "Your ONLY domain is astrological compatibility: synastry, karmic bonds, and relationship scores."
+            ),
+            "Angel Numbers": (
+                "You are a master numerologist specialising exclusively in Angel Numbers: "
+                "vibrational meaning, spiritual messages, and daily guidance."
+            ),
+            "Smart Planner": (
+                "You are an astrological time-management coach. "
+                "Your ONLY domain is the Smart Planner: favorable dates for tasks via astrology and numerology."
+            ),
+            "Numerology": (
+                "You are a master numerologist covering Pythagorean, Chaldean, Kabbalistic, and Chinese systems."
+            ),
+        }
+
+        default_persona = (
+            "You are the ultimate AstroSync App Expert and Destiny Matrix Guide. "
+            "You explain personal esoteric calculations across astrology, numerology, and destiny."
+        )
+        expert_persona = MODULE_EXPERTS.get(module_name, default_persona)
+        display_module = module_name if module_name else "AstroSync"
+
         system_prompt = f"""
-        You are the ultimate AstroSync App Expert and Destiny Matrix Guide.
-        Your main job is to explain the user's personal esoteric calculations.
-        
-        Here is the user's personal calculated data sent from the app:
-        {user_context}
-        
-        RULES & SAFETY:
-        1. IF the user asks about their Matrix, destiny, karmic tail, or family lines, ONLY use the numbers provided in the context above! Do not invent numbers.
-        2. IF the user_context says "No data", DO NOT invent or imagine any Tarot cards. Explicitly tell the user to provide their birth date.
-        3. Answer strictly in {lang_prompt}.
-        4. Keep it engaging, empathetic, and structured.
-        """
-        
+{expert_persona}
+
+CURRENT SCREEN: {display_module}
+USER'S DATA FROM THE APP:
+{full_context}
+
+STRICT OPERATING RULES:
+1. SCOPE LOCK — You are a narrow specialist. ONLY answer questions directly related to {display_module} and esoteric topics connected to it.
+   If the user asks about ANYTHING outside this scope (cooking, politics, coding, sports, general knowledge, other app modules), FIRMLY refuse:
+   "I am your {display_module} expert. I can only help with questions about {display_module}."
+2. DATA INTEGRITY — ONLY use numbers/data from the context block above. NEVER invent or guess arcana numbers, planet positions, or scores.
+3. NO DATA RULE — If context says "No data" or is empty, tell the user to provide their birth date in Settings.
+4. LANGUAGE — Answer strictly in {lang_prompt}. Never switch languages mid-reply.
+5. TONE — Be engaging, empathetic, structured, and deeply insightful. Use 1-2 relevant emojis per response.
+"""
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": question}],
-            temperature=0.4, max_tokens=1000
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.35,
+            max_tokens=1000
         )
         return {"answer": response.choices[0].message.content}
-        
+
     except Exception as e:
         errors = {
             "en": "The expert is busy. Try again in a minute.",
