@@ -146,7 +146,7 @@ def calculate_chakras(matrix: dict) -> list:
             phys_val = reduce_to_arcana(phys)
             eng_val = reduce_to_arcana(eng)
             emot_val = reduce_to_arcana(phys_val + eng_val)
-            return {"name": name, "nameUk": name_uk, "physical": phys_val, "energy": eng_val, "emotions": emot_val}
+            return {"name": name, "name_uk": name_uk, "physical": phys_val, "energy": eng_val, "emotions": emot_val}
 
         return [
             make_chakra("Sahasrara", "Сахасрара", A, B),
