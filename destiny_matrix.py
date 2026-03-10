@@ -127,35 +127,39 @@ def get_arcana_info(number: int, language: str = "en") -> dict:
 
 
 def calculate_chakras(matrix: dict) -> list:
-    core = matrix.get("core", {})
-    gen = matrix.get("generational", {})
+    try:
+        core = matrix.get("core", {})
+        gen = matrix.get("generational", {})
 
-    A = core.get("day", 0)
-    B = core.get("month", 0)
-    C = core.get("year", 0)
-    D = core.get("bottom", 0)
-    E = core.get("center", 0)
+        A = core.get("day", 0)
+        B = core.get("month", 0)
+        C = core.get("year", 0)
+        D = core.get("bottom", 0)
+        E = core.get("center", 0)
 
-    TL = gen.get("father_spirit", 0)
-    TR = gen.get("mother_spirit", 0)
-    BL = gen.get("father_material", 0)
-    BR = gen.get("mother_material", 0)
+        TL = gen.get("father_spirit", 0)
+        TR = gen.get("mother_spirit", 0)
+        BL = gen.get("father_material", 0)
+        BR = gen.get("mother_material", 0)
 
-    def make_chakra(name, name_uk, phys, eng):
-        phys_val = reduce_to_arcana(phys)
-        eng_val = reduce_to_arcana(eng)
-        emot_val = reduce_to_arcana(phys_val + eng_val)
-        return {"name": name, "nameUk": name_uk, "physical": phys_val, "energy": eng_val, "emotions": emot_val}
+        def make_chakra(name, name_uk, phys, eng):
+            phys_val = reduce_to_arcana(phys)
+            eng_val = reduce_to_arcana(eng)
+            emot_val = reduce_to_arcana(phys_val + eng_val)
+            return {"name": name, "nameUk": name_uk, "physical": phys_val, "energy": eng_val, "emotions": emot_val}
 
-    return [
-        make_chakra("Sahasrara", "Сахасрара", A, B),
-        make_chakra("Ajna", "Аджна", TL, TR),
-        make_chakra("Vishuddha", "Вішуддха", reduce_to_arcana(A + E), reduce_to_arcana(B + E)),
-        make_chakra("Anahata", "Анахата", E, E),
-        make_chakra("Manipura", "Маніпура", reduce_to_arcana(E + C), reduce_to_arcana(E + D)),
-        make_chakra("Svadhisthana", "Свадхістхана", BL, BR),
-        make_chakra("Muladhara", "Муладхара", C, D),
-    ]
+        return [
+            make_chakra("Sahasrara", "Сахасрара", A, B),
+            make_chakra("Ajna", "Аджна", TL, TR),
+            make_chakra("Vishuddha", "Вішуддха", reduce_to_arcana(A + E), reduce_to_arcana(B + E)),
+            make_chakra("Anahata", "Анахата", E, E),
+            make_chakra("Manipura", "Маніпура", reduce_to_arcana(E + C), reduce_to_arcana(E + D)),
+            make_chakra("Svadhisthana", "Свадхістхана", BL, BR),
+            make_chakra("Muladhara", "Муладхара", C, D),
+        ]
+    except Exception as e:
+        print(f"❌ Chakra calculation error: {e}")
+        return []
 
 
 def get_full_destiny_matrix(birth_date: str, language: str = "en") -> dict:
