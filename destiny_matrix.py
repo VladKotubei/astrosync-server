@@ -126,6 +126,72 @@ def get_arcana_info(number: int, language: str = "en") -> dict:
         return {"number": number, "name": data["name"], "keywords": data["keywords"], "description": data["description"], "shadow": data["shadow"]}
 
 
+def calculate_chakras(matrix_zones: dict) -> list:
+    """
+    Розраховує стан 7 чакр на основі зон Матриці Долі.
+    Кожна чакра має три виміри: Фізика, Енергія, Емоції.
+    Порядок: від кореневої (Муладхара) до тім'яної (Сахасрара).
+    """
+    core  = matrix_zones["core"]
+    gen   = matrix_zones["generational"]
+    money = matrix_zones["money_channel"]
+    love  = matrix_zones["love_channel"]
+    kt    = matrix_zones["karmic_tail"]
+
+    chakras = [
+        {
+            "name": "Muladhara",
+            "name_uk": "Муладхара",
+            "physical":  reduce_to_arcana(core["day"] + core["bottom"]),
+            "energy":    core["bottom"],
+            "emotions":  reduce_to_arcana(core["day"] + gen["father_material"]),
+        },
+        {
+            "name": "Svadhisthana",
+            "name_uk": "Свадхістхана",
+            "physical":  love["entrance"],
+            "energy":    reduce_to_arcana(love["entrance"] + kt["middle"]),
+            "emotions":  kt["middle"],
+        },
+        {
+            "name": "Manipura",
+            "name_uk": "Маніпура",
+            "physical":  money["entrance"],
+            "energy":    core["center"],
+            "emotions":  money["profession"],
+        },
+        {
+            "name": "Anahata",
+            "name_uk": "Анахата",
+            "physical":  reduce_to_arcana(love["balance"] + gen["mother_spirit"]),
+            "energy":    reduce_to_arcana(core["center"] + love["entrance"]),
+            "emotions":  gen["mother_spirit"],
+        },
+        {
+            "name": "Vishuddha",
+            "name_uk": "Вішуддха",
+            "physical":  gen["father_spirit"],
+            "energy":    core["month"],
+            "emotions":  gen["mother_spirit"],
+        },
+        {
+            "name": "Ajna",
+            "name_uk": "Аджна",
+            "physical":  core["year"],
+            "energy":    reduce_to_arcana(core["year"] + money["balance"]),
+            "emotions":  kt["inner"],
+        },
+        {
+            "name": "Sahasrara",
+            "name_uk": "Сахасрара",
+            "physical":  reduce_to_arcana(core["center"] + core["month"]),
+            "energy":    reduce_to_arcana(core["day"] + core["month"] + core["year"]),
+            "emotions":  core["center"],
+        },
+    ]
+    return chakras
+
+
 def get_full_destiny_matrix(birth_date: str, language: str = "en") -> dict:
     matrix = calculate_destiny_matrix(birth_date)
     if not matrix: return None
@@ -150,4 +216,6 @@ def get_full_destiny_matrix(birth_date: str, language: str = "en") -> dict:
     kt_info["meaning"] = get_karmic_tail_meaning(kt_info["combo"], language)
     zones_with_info["karmic_tail"] = kt_info
 
-    return {"birth_date": birth_date, "matrix": zones_with_info, "language": language}
+    chakra_health = calculate_chakras(matrix)
+
+    return {"birth_date": birth_date, "matrix": zones_with_info, "chakra_health": chakra_health, "language": language}
