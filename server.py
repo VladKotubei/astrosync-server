@@ -1,6 +1,6 @@
 # --- AstroSync: Elite API Server v6.0 ---
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from quantum_engine import calculate_quantum_state
 from natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
@@ -307,8 +307,8 @@ class AICoachRequest(BaseModel):
     question: str
     name: str = "Мандрівник"
     language: str = "uk"
-    module_name: str = Field(default="", alias="moduleName")
-    context_data: str = Field(default="", alias="contextData")
+    module_name: str = ""
+    context_data: str = ""
 
 @app.post('/ai-appcoach')
 def ai_appcoach(request: AICoachRequest):
