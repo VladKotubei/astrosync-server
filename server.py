@@ -1,5 +1,6 @@
 # --- AstroSync: Elite API Server v6.0 ---
 from fastapi import FastAPI
+from pydantic import BaseModel, Field
 from quantum_engine import calculate_quantum_state
 from natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
@@ -302,17 +303,22 @@ def get_daily_insight(date: str, language: str = "en"):
         
     return {"date": date, "insight": insight}
 
+class AICoachRequest(BaseModel):
+    question: str
+    name: str = "Мандрівник"
+    language: str = "uk"
+    module_name: str = Field(default="", alias="moduleName")
+    context_data: str = Field(default="", alias="contextData")
+
 @app.post('/ai-appcoach')
-def ai_appcoach(data: dict):
+def ai_appcoach(request: AICoachRequest):
     try:
-        question    = data.get('question', '')
-        name        = data.get('name', 'Мандрівник')
-        language    = data.get('language', 'uk')
-        # Legacy field from the global AIАppCoachView
-        user_context  = data.get('user_context', '')
-        # New contextual fields from FloatingAIChatButton screens
-        module_name   = data.get('module_name', '').strip()
-        context_data  = data.get('context_data', '')
+        question      = request.question
+        name          = request.name
+        language      = request.language
+        module_name   = request.module_name.strip()
+        context_data  = request.context_data
+        user_context  = ""
 
         lang_prompt = LANGUAGES.get(language, "English")
 
@@ -427,7 +433,7 @@ STRICT OPERATING RULES:
             "pl": "Ekspert jest zajęty. Spróbuj ponownie za chwilę.",
             "ru": "Эксперт сейчас занят. Попробуйте через минуту."
         }
-        return {"answer": errors.get(data.get('language', 'en'), errors["en"])}
+        return {"answer": errors.get(request.language, errors["en"])}
     
 @app.get("/angel-numbers")
 def get_angel_numbers(birth_date: str, language: str = "en"):
