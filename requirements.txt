@@ -6,3 +6,7 @@ flatlib
 pyswisseph
 pydantic
 requests
+# Lunar Engine dependencies
+cachetools
+pytest
+httpx
