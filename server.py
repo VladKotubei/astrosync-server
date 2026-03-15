@@ -12,6 +12,7 @@ import uvicorn
 import sys
 import os
 from dotenv import load_dotenv
+from lunar_engine.routers.moon_data import router as moon_data_router
 
 # Завантажуємо API ключ з .env
 load_dotenv()
@@ -33,6 +34,7 @@ except ImportError as e:
     sys.exit(1)
 
 app = FastAPI()
+app.include_router(moon_data_router)
 
 # !!! SECURE YOUR KEY !!!
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
