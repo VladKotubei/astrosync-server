@@ -79,3 +79,22 @@ class MoonFavorabilityResponse(BaseModel):
         default_factory=list,
         description="Per-planet aspect breakdown",
     )
+
+
+class DayFavorability(BaseModel):
+    """Favorability status for a single calendar day."""
+
+    date: str = Field(..., description='Calendar date in "YYYY-MM-DD" format')
+    status: str = Field(
+        ...,
+        description='"favorable", "neutral", or "unfavorable"',
+    )
+
+
+class MonthFavorabilityResponse(BaseModel):
+    """Favorability status for every day in a requested month."""
+
+    month_data: list[DayFavorability] = Field(
+        ...,
+        description="One entry per calendar day in the requested month",
+    )

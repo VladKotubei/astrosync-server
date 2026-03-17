@@ -12,11 +12,16 @@ natal_lon  : float               — birth-location longitude
 
 from __future__ import annotations
 
+import calendar
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query
 
-from lunar_engine.models import MoonFavorabilityResponse
+from lunar_engine.models import (
+    DayFavorability,
+    MonthFavorabilityResponse,
+    MoonFavorabilityResponse,
+)
 from lunar_engine.services.favorability_calculator import (
     calculate_moon_favorability,
     natal_params_to_jd,
@@ -63,3 +68,38 @@ async def get_moon_favorability(
 
     result = calculate_moon_favorability(transit_date, natal_jd)
     return MoonFavorabilityResponse(**result)
+
+
+@router.get(
+    "/moon-favorability-month",
+    response_model=MonthFavorabilityResponse,
+    summary="Score every day of a month against the user's natal planets",
+)
+async def get_moon_favorability_month(
+    year: int = Query(..., ge=1900, le=2200, description="Gregorian year"),
+    month: int = Query(..., ge=1, le=12, description="Gregorian month (1-12)"),
+    natal_date: str = Query(..., description='Birth date in "YYYY-MM-DD" format'),
+    natal_time: str = Query(..., description='Birth time in "HH:MM" format'),
+    natal_lat: float = Query(..., ge=-90.0, le=90.0, description="Birth-location latitude"),
+    natal_lon: float = Query(..., ge=-180.0, le=180.0, description="Birth-location longitude"),
+) -> MonthFavorabilityResponse:
+
+    try:
+        natal_jd = natal_params_to_jd(natal_date, natal_time, natal_lat, natal_lon)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid natal parameters: {exc}")
+
+    days_in_month = calendar.monthrange(year, month)[1]
+    month_data: list[DayFavorability] = []
+
+    for day in range(1, days_in_month + 1):
+        transit_date = datetime(year, month, day, tzinfo=timezone.utc)
+        result = calculate_moon_favorability(transit_date, natal_jd)
+        month_data.append(
+            DayFavorability(
+                date=transit_date.strftime("%Y-%m-%d"),
+                status=result["status"],
+            )
+        )
+
+    return MonthFavorabilityResponse(month_data=month_data)
