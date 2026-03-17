@@ -53,3 +53,29 @@ class MoonDataResponse(BaseModel):
     @field_serializer("next_full_moon", "moonrise", "moonset")
     def _serialize_datetime(self, dt: Optional[datetime]) -> Optional[str]:
         return dt.isoformat() if dt is not None else None
+
+
+class AspectDetail(BaseModel):
+    """One transiting-Moon-to-natal-planet aspect."""
+
+    natal_planet: str
+    aspect: str
+    angle: float
+    points: int
+
+
+class MoonFavorabilityResponse(BaseModel):
+    """Scored result of how the transiting Moon aspects natal planets."""
+
+    status: str = Field(
+        ...,
+        description='"favorable", "neutral", or "unfavorable"',
+    )
+    score: int = Field(
+        ...,
+        description="Net aspect score (positive = favorable)",
+    )
+    details: list[AspectDetail] = Field(
+        default_factory=list,
+        description="Per-planet aspect breakdown",
+    )

@@ -13,6 +13,7 @@ import sys
 import os
 from dotenv import load_dotenv
 from lunar_engine.routers.moon_data import router as moon_data_router
+from lunar_engine.routers.moon_favorability import router as moon_favorability_router
 
 # Завантажуємо API ключ з .env
 load_dotenv()
@@ -35,6 +36,7 @@ except ImportError as e:
 
 app = FastAPI()
 app.include_router(moon_data_router)
+app.include_router(moon_favorability_router)
 
 # !!! SECURE YOUR KEY !!!
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
