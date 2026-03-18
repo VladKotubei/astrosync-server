@@ -35,6 +35,22 @@ class MoonDataResponse(BaseModel):
         gt=0.0,
         description="Earth–Moon distance in kilometres",
     )
+    zodiac_sign: str = Field(
+        ...,
+        description="Tropical zodiac sign the Moon currently occupies",
+    )
+    moon_longitude: float = Field(
+        ...,
+        ge=0.0,
+        lt=360.0,
+        description="Moon's ecliptic longitude in degrees (0–360)",
+    )
+    sign_index: int = Field(
+        ...,
+        ge=0,
+        le=11,
+        description="Zero-based zodiac sign index (0 = Aries … 11 = Pisces)",
+    )
     next_full_moon: datetime = Field(
         ...,
         description="UTC datetime of the next full moon",

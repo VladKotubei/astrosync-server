@@ -12,9 +12,10 @@ Response: MoonDataResponse JSON (see models.py)
 
 Caching strategy
 ----------------
-Geocentric quantities (phase, illumination, distance, next_full_moon) are
-identical for every user on the same date, so they are stored in the
-module-level CacheService singleton with a 15-minute TTL.
+Geocentric quantities (phase, illumination, distance, next_full_moon,
+zodiac_sign, moon_longitude, sign_index) are identical for every user on
+the same date, so they are stored in the module-level CacheService singleton
+with a 15-minute TTL.
 
 Topocentric quantities (moonrise, moonset) depend on geographic coordinates
 and are always recalculated per request.
@@ -42,7 +43,7 @@ router = APIRouter(prefix="/api/v1", tags=["Lunar Engine"])
     "/moon-data",
     response_model=MoonDataResponse,
     summary="Get precise lunar data for a date and location",
-    response_description="Geocentric + topocentric lunar snapshot",
+    response_description="Geocentric (phase, illumination, distance, zodiac sign) + topocentric (rise/set) lunar snapshot",
 )
 async def get_moon_data(
     date: str = Query(

@@ -38,6 +38,13 @@ _JD_UNIX_EPOCH: float = 2_440_587.5   # Julian Day at 1970-01-01 00:00:00 UTC
 # Mean synodic angular velocity used as Newton's-method Jacobian.
 _SYNODIC_RATE: float = 360.0 / 29.530588853  # ≈ 12.190749 °/day
 
+# ─── Zodiac signs (tropical, equal 30° houses) ──────────────────────────────
+_ZODIAC_SIGNS: tuple[str, ...] = (
+    "Aries", "Taurus", "Gemini", "Cancer",
+    "Leo", "Virgo", "Libra", "Scorpio",
+    "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+)
+
 # ─── Rise / set flags ────────────────────────────────────────────────────────
 _CALC_RISE: int = swe.CALC_RISE   # = 1
 _CALC_SET: int = swe.CALC_SET    # = 2
@@ -132,6 +139,11 @@ def calculate_global_moon_data(date_utc: datetime) -> Dict[str, Any]:
     # calc_ut → ((lon°, lat°, dist_AU, v_lon, v_lat, v_dist), retflag)
     moon_pos, _ = swe.calc_ut(jd, swe.MOON, _EPHE_FLAG)
 
+    # ── Zodiac sign from ecliptic longitude ─────────────────────────────
+    moon_longitude = round(moon_pos[0] % 360.0, 4)
+    sign_index = int(moon_longitude // 30)
+    zodiac_sign = _ZODIAC_SIGNS[sign_index]
+
     # ── Illumination via Swiss Ephemeris phenomena ────────────────────────
     # pheno_ut → (phase_angle°, illumination_frac, elongation°,
     #              disc_diam", magnitude)  — flat 5-tuple, no retflag
@@ -156,6 +168,9 @@ def calculate_global_moon_data(date_utc: datetime) -> Dict[str, Any]:
         "illumination": illumination_pct,
         "distance": distance_km,
         "next_full_moon": next_full_moon_utc,
+        "zodiac_sign": zodiac_sign,
+        "moon_longitude": moon_longitude,
+        "sign_index": sign_index,
     }
 
 
