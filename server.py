@@ -148,8 +148,8 @@ def get_horoscope(name: str, date: str, language: str = "en"):
     }
 
 @app.get("/calendar")
-def get_calendar(year: int, month: int):
-    calendar_data = get_calendar_data(year, month)
+def get_calendar(year: int, month: int, language: str = "en"):
+    calendar_data = get_calendar_data(year, month, language)
     return {"year": year, "month": month, "days": calendar_data}
 
 @app.get("/day-energy")
