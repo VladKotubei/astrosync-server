@@ -5,7 +5,7 @@ from app.services.quantum_engine import calculate_quantum_state
 from app.services.natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
 from datetime import datetime
-from app.services.compatibility import calculate_compatibility
+from app.services.compatibility import calculate_compatibility, calculate_lite_compatibility
 from app.services.angel_numbers import calculate_angel_number
 import json
 import uvicorn
@@ -285,7 +285,94 @@ def get_compatibility(data: dict):
         if not result: return {"error": "Could not calculate compatibility"}
         return result
     except Exception as e: return {"error": str(e)}
-  
+
+# --- Synastry Lite endpoint (Free / Viral sharing) ---
+@app.post("/compatibility-lite")
+def get_compatibility_lite(request: CompatibilityLiteRequest):
+    """
+    Lightweight, free compatibility check for the Synastry Lite feature.
+    Returns a short, viral summary perfect for social media sharing.
+    Completely separate from the Pro /compatibility endpoint.
+    """
+    try:
+        # Step 1 — calculate base compatibility (Sun sign only)
+        result = calculate_lite_compatibility(
+            request.name1,
+            request.date1,
+            request.name2,
+            request.date2
+        )
+        if not result:
+            return {"error": "Could not calculate lite compatibility"}
+
+        name1 = result["name1"]
+        sign1 = result["sign1"]
+        name2 = result["name2"]
+        sign2 = result["sign2"]
+        score = int(result["score"])
+
+        # Step 2 — generate a viral 2-sentence summary via OpenAI
+        lang_instruction = LANGUAGES.get(request.language, "English")
+
+        system_prompt = (
+            f"You are a witty, emotional astrology copywriter writing short viral "
+            f"social media captions. You MUST respond EXACTLY in {lang_instruction}. "
+            f"Keep it under 2 sentences. Use 1-2 tasteful emojis. No hashtags. "
+            f"No quotation marks around the answer. Make it feel personal, warm, "
+            f"and perfect for an Instagram story or TikTok screenshot."
+        )
+
+        user_prompt = (
+            f"Two people just checked their zodiac compatibility:\n"
+            f"- {name1} ({sign1})\n"
+            f"- {name2} ({sign2})\n"
+            f"- Compatibility score: {score}/100\n\n"
+            f"Write a punchy 2-sentence viral caption about their match. "
+            f"If the score is high (80+), celebrate it. If medium (50-79), be playful "
+            f"and hopeful. If low (<50), be humorous and kind, never negative."
+        )
+
+        viral_summary = None
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                max_tokens=120,
+                temperature=0.9
+            )
+            viral_summary = response.choices[0].message.content.strip().strip('"').strip("'")
+        except Exception as e:
+            print(f"⚠️ OpenAI Error in /compatibility-lite: {e}")
+            fallbacks = {
+                "en": f"✨ {name1} and {name2} scored {score}/100 — the stars have spoken! A cosmic mix worth exploring. 💫",
+                "uk": f"✨ {name1} і {name2} набрали {score}/100 — зірки все сказали! Космічний союз, який варто дослідити. 💫",
+                "es": f"✨ {name1} y {name2} obtuvieron {score}/100 — ¡las estrellas han hablado! Una mezcla cósmica por explorar. 💫",
+                "it": f"✨ {name1} e {name2} hanno totalizzato {score}/100 — le stelle hanno parlato! Un mix cosmico da esplorare. 💫",
+                "de": f"✨ {name1} und {name2} erreichen {score}/100 — die Sterne haben gesprochen! Eine kosmische Mischung zum Entdecken. 💫",
+                "pl": f"✨ {name1} i {name2} zdobyli {score}/100 — gwiazdy przemówiły! Kosmiczne połączenie warte odkrycia. 💫",
+                "ru": f"✨ {name1} и {name2} набрали {score}/100 — звёзды сказали своё слово! Космический союз, который стоит исследовать. 💫"
+            }
+            viral_summary = fallbacks.get(request.language, fallbacks["en"])
+
+        # Step 3 — return final JSON for the iOS client
+        return {
+            "score": score,
+            "name1": name1,
+            "sign1": sign1,
+            "name2": name2,
+            "sign2": sign2,
+            "viral_summary": viral_summary
+        }
+
+    except Exception as e:
+        print(f"❌ Error in /compatibility-lite: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)}
+
 @app.get("/destiny-matrix")
 def get_destiny_matrix(birth_date: str, language: str = "en"):
     result = get_full_destiny_matrix(birth_date, language)
@@ -355,6 +442,14 @@ def get_daily_insight(date: str, language: str = "en"):
         insight = "Енергія цього дня вимагає балансу." if language in ["uk", "ru"] else "This day requires balance."
         
     return {"date": date, "insight": insight}
+
+# --- Synastry Lite (Free / Viral) ---
+class CompatibilityLiteRequest(BaseModel):
+    name1: str
+    date1: str  # Format: 'YYYY-MM-DD'
+    name2: str
+    date2: str  # Format: 'YYYY-MM-DD'
+    language: str = "en"
 
 class AICoachRequest(BaseModel):
     question: str

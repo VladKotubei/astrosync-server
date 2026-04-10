@@ -279,3 +279,48 @@ if __name__ == "__main__":
         print(f"Challenges: {result['challenges']}")
     else:
         print("\n❌ Failed")
+
+
+# --- AstroSync: Synastry Lite (Viral / Free Tier) ---
+def calculate_lite_compatibility(name1: str, date1: str, name2: str, date2: str):
+    """
+    Lightweight compatibility calculation based only on Sun signs.
+    Designed for the free viral sharing feature (Synastry Lite).
+    
+    Args:
+        name1: First person's name
+        date1: First person's birth date in 'YYYY-MM-DD' format
+        name2: Second person's name
+        date2: Second person's birth date in 'YYYY-MM-DD' format
+    
+    Returns:
+        dict with: name1, sign1, name2, sign2, score (int 0-100)
+        or None on failure
+    """
+    try:
+        # Local import to avoid any circular-import risk
+        from app.services.astro_basic import get_zodiac_sign
+        
+        # flatlib expects 'YYYY/MM/DD' — convert from iOS format 'YYYY-MM-DD'
+        date1_flatlib = date1.replace("-", "/")
+        date2_flatlib = date2.replace("-", "/")
+        
+        sign1 = get_zodiac_sign(date1_flatlib)
+        sign2 = get_zodiac_sign(date2_flatlib)
+        
+        # Use the existing compare_signs helper (defined above in this file)
+        raw_score = compare_signs(sign1, sign2)
+        score = int(round(raw_score))
+        
+        return {
+            "name1": name1,
+            "sign1": sign1,
+            "name2": name2,
+            "sign2": sign2,
+            "score": score
+        }
+    except Exception as e:
+        print(f"❌ Error in calculate_lite_compatibility: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
