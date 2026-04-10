@@ -162,70 +162,119 @@ def get_today_energy():
 def get_natal_chart(birth_date: str, birth_time: str, latitude: float, longitude: float, tz: str = "UTC", language: str = "en"):
     # tz приймається для сумісності, але поки не передається в calculate_natal_chart (там UTC)
     chart = calculate_natal_chart(birth_date, birth_time, latitude, longitude)
-    
+ 
     if not chart:
         return {"error": "Could not calculate natal chart"}
-
+ 
+    # 🌍 Переклади назв планет — включно з вищими планетами Elite-рівня
+    PLANET_TRANSLATIONS = {
+        "uk": {
+            "Sun": "Сонце", "Moon": "Місяць", "Mercury": "Меркурій",
+            "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпітер",
+            "Saturn": "Сатурн", "Uranus": "Уран", "Neptune": "Нептун",
+            "Pluto": "Плутон", "Chiron": "Хірон", "North Node": "Вузол Місяця"
+        },
+        "ru": {
+            "Sun": "Солнце", "Moon": "Луна", "Mercury": "Меркурий",
+            "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпитер",
+            "Saturn": "Сатурн", "Uranus": "Уран", "Neptune": "Нептун",
+            "Pluto": "Плутон", "Chiron": "Хирон", "North Node": "Северный Узел"
+        },
+        "es": {
+            "Sun": "Sol", "Moon": "Luna", "Mercury": "Mercurio",
+            "Venus": "Venus", "Mars": "Marte", "Jupiter": "Júpiter",
+            "Saturn": "Saturno", "Uranus": "Urano", "Neptune": "Neptuno",
+            "Pluto": "Plutón", "Chiron": "Quirón", "North Node": "Nodo Norte"
+        },
+        "it": {
+            "Sun": "Sole", "Moon": "Luna", "Mercury": "Mercurio",
+            "Venus": "Venere", "Mars": "Marte", "Jupiter": "Giove",
+            "Saturn": "Saturno", "Uranus": "Urano", "Neptune": "Nettuno",
+            "Pluto": "Plutone", "Chiron": "Chirone", "North Node": "Nodo Nord"
+        },
+        "de": {
+            "Sun": "Sonne", "Moon": "Mond", "Mercury": "Merkur",
+            "Venus": "Venus", "Mars": "Mars", "Jupiter": "Jupiter",
+            "Saturn": "Saturn", "Uranus": "Uranus", "Neptune": "Neptun",
+            "Pluto": "Pluto", "Chiron": "Chiron", "North Node": "Mondknoten"
+        },
+        "pl": {
+            "Sun": "Słońce", "Moon": "Księżyc", "Mercury": "Merkury",
+            "Venus": "Wenus", "Mars": "Mars", "Jupiter": "Jowisz",
+            "Saturn": "Saturn", "Uranus": "Uran", "Neptune": "Neptun",
+            "Pluto": "Pluton", "Chiron": "Chiron", "North Node": "Węzeł Północny"
+        },
+    }
+ 
     def format_planet(name, data):
+        """Форматує дані однієї планети для відповіді iOS."""
         house_str = data.get("house", "House_1")
         house_num = int(house_str.split("_")[1]) if "_" in house_str else 1
-        
-        # 🌍 Переклад назв планет для різних мов
-        planet_translations = {
-            "uk": {"Sun": "Сонце", "Moon": "Місяць", "Mercury": "Меркурій", "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпітер", "Saturn": "Сатурн"},
-            "ru": {"Sun": "Солнце", "Moon": "Луна", "Mercury": "Меркурий", "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпитер", "Saturn": "Сатурн"},
-            "es": {"Sun": "Sol", "Moon": "Luna", "Mercury": "Mercurio", "Venus": "Venus", "Mars": "Marte", "Jupiter": "Júpiter", "Saturn": "Saturno"},
-            "it": {"Sun": "Sole", "Moon": "Luna", "Mercury": "Mercurio", "Venus": "Venere", "Mars": "Marte", "Jupiter": "Giove", "Saturn": "Saturno"},
-            "de": {"Sun": "Sonne", "Moon": "Mond", "Mercury": "Merkur", "Venus": "Venus", "Mars": "Mars", "Jupiter": "Jupiter", "Saturn": "Saturn"},
-            "pl": {"Sun": "Słońce", "Moon": "Księżyc", "Mercury": "Merkury", "Venus": "Wenus", "Mars": "Mars", "Jupiter": "Jowisz", "Saturn": "Saturn"}
-        }
-        
-        local_name = planet_translations.get(language, {}).get(name, name)
-        
+        local_name = PLANET_TRANSLATIONS.get(language, {}).get(name, name)
         return {
-            "name": local_name,
-            "sign": data["sign"],
-            "house": house_num,
-            "degree": data.get("degree", 0.0),
-            "is_retrograde": False, 
-            "description": get_planet_meaning(name, data["sign"], house_str, language)
+            "name":            local_name,
+            "sign":            data.get("sign", ""),
+            "house":           house_num,
+            "degree":          data.get("sign_degree", data.get("degree", 0.0)),
+            "absolute_degree": data.get("absolute_degree", 0.0),
+            "is_retrograde":   data.get("is_retrograde", False),
         }
-
+ 
     planets_data = chart.get("planets", {})
+ 
+    # --- Big Three: Sun, Moon, Ascendant (зворотна сумісність з iOS) ---
     big_three = []
-    
-    if "Sun" in planets_data: big_three.append(format_planet("Sun", planets_data["Sun"]))
+    if "Sun"  in planets_data: big_three.append(format_planet("Sun",  planets_data["Sun"]))
     if "Moon" in planets_data: big_three.append(format_planet("Moon", planets_data["Moon"]))
-        
-    asc_sign = chart.get("ascendant", {}).get("sign", "Unknown")
-    asc_degree = chart.get("ascendant", {}).get("degree", 0.0)
-    
-    # 🌍 Переклад для Асценденту
-    asc_desc_map = {
-        "en": f"Your Ascendant in {asc_sign} shapes your outward personality.",
-        "uk": f"Ваш Асцендент у знаку {asc_sign} формує вашу зовнішню особистість.",
-        "es": f"Tu Ascendente en {asc_sign} forma tu personalidad exterior.",
-        "it": f"Il tuo Ascendente in {asc_sign} modella la tua personalità esteriore.",
-        "de": f"Dein Aszendent in {asc_sign} prägt deine äußere Persönlichkeit.",
-        "pl": f"Twój Ascendent w {asc_sign} kształtuje twoją zewnętrzną osobowość.",
-        "ru": f"Ваш Асцендент в знаке {asc_sign} формирует вашу внешнюю личность."
+ 
+    # Асцендент — беремо з нової Elite-структури, з fallback на стару
+    asc_data   = chart.get("angles", {}).get("ascendant") or chart.get("ascendant", {})
+    asc_sign   = asc_data.get("sign", "Unknown")
+    asc_abs    = asc_data.get("absolute_degree", asc_data.get("degree", 0.0))
+    asc_sigdeg = asc_data.get("sign_degree", asc_data.get("degree", 0.0))
+ 
+    ASC_NAMES = {
+        "uk": "Асцендент", "ru": "Асцендент",
+        "es": "Ascendente", "it": "Ascendente",
+        "de": "Aszendent",  "pl": "Ascendent",
     }
-    
     big_three.append({
-        "name": "Асцендент" if language in ["uk", "ru"] else ("Ascendente" if language in ["es", "it"] else ("Aszendent" if language == "de" else ("Ascendent" if language == "pl" else "Ascendant"))),
-        "sign": asc_sign,
-        "house": 1,
-        "degree": asc_degree,
-        "is_retrograde": False,
-        "description": asc_desc_map.get(language, asc_desc_map["en"])
+        "name":            ASC_NAMES.get(language, "Ascendant"),
+        "sign":            asc_sign,
+        "house":           1,
+        "degree":          asc_sigdeg,
+        "absolute_degree": asc_abs,
+        "is_retrograde":   False,
     })
-
-    other_planets = []
-    for p in ["Mercury", "Venus", "Mars", "Jupiter", "Saturn"]:
-        if p in planets_data:
-            other_planets.append(format_planet(p, planets_data[p]))
-
-    return {"big_three": big_three, "planets": other_planets}
+ 
+    # --- Усі інші планети (Elite: включно з вищими) ---
+    PLANET_ORDER = [
+        "Mercury", "Venus", "Mars", "Jupiter", "Saturn",
+        "Uranus", "Neptune", "Pluto", "Chiron", "North Node"
+    ]
+    other_planets = [
+        format_planet(p, planets_data[p])
+        for p in PLANET_ORDER if p in planets_data
+    ]
+ 
+    # --- Будинки: передаємо absolute_degree для iOS-кола ---
+    houses_out = {
+        key: {
+            "sign":            hdata.get("sign", ""),
+            "absolute_degree": hdata.get("absolute_degree", hdata.get("degree", 0.0)),
+        }
+        for key, hdata in chart.get("houses", {}).items()
+    }
+ 
+    return {
+        # Зворотна сумісність зі старим iOS-кодом
+        "big_three": big_three,
+        "planets":   other_planets,
+        # Elite-дані для нового NatalChartView
+        "aspects":   chart.get("aspects", []),
+        "houses":    houses_out,
+        "metadata":  chart.get("metadata", {}),
+    }
     
 @app.post("/compatibility")
 def get_compatibility(data: dict):
