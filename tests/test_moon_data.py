@@ -23,8 +23,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from lunar_engine.routers.moon_data import router
-from lunar_engine.services.cache_service import moon_cache
+from app.api.lunar_engine.routers.moon_data import router
+from app.api.lunar_engine.services.cache_service import moon_cache
 
 # ─── Minimal test application ────────────────────────────────────────────────
 _app = FastAPI(title="AstroSync Lunar Engine – Test")

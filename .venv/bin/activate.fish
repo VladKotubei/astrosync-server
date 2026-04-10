@@ -29,7 +29,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/what.is.love/Desktop/AstroSync/numerology.py/.venv"
+set -gx VIRTUAL_ENV "/Users/what.is.love/Desktop/AstroSync_Workspace/backend/.venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

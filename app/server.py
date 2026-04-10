@@ -1,0 +1,500 @@
+# --- AstroSync: Elite API Server v6.0 ---
+from fastapi import FastAPI
+from pydantic import BaseModel
+from app.services.quantum_engine import calculate_quantum_state
+from app.services.natal_chart import calculate_natal_chart, get_planet_meaning
+from openai import OpenAI
+from datetime import datetime
+from app.services.compatibility import calculate_compatibility
+from app.services.angel_numbers import calculate_angel_number
+import json
+import uvicorn
+import sys
+import os
+from dotenv import load_dotenv
+from app.api.lunar_engine.routers.moon_data import router as moon_data_router
+from app.api.lunar_engine.routers.moon_favorability import router as moon_favorability_router
+
+# Завантажуємо API ключ з .env
+load_dotenv()
+
+# Importing your custom modules
+try:
+    from app.services.numerology import (
+        calculate_life_path, 
+        get_personal_cycles,
+        calculate_soul_number,
+        calculate_personality_number,
+        get_number_description
+    )
+    from app.services.astro_basic import get_zodiac_sign, get_moon_phase
+    from app.services.astro_calendar import get_calendar_data, get_day_energy
+    from app.services.destiny_matrix import get_full_destiny_matrix
+except ImportError as e:
+    print(f"❌ Error importing local modules: {e}")
+    sys.exit(1)
+
+app = FastAPI()
+app.include_router(moon_data_router)
+app.include_router(moon_favorability_router)
+
+# !!! SECURE YOUR KEY !!!
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+# 🌍 Словник підтримуваних мов
+LANGUAGES = {
+    "en": "English",
+    "uk": "Ukrainian",
+    "es": "Spanish",
+    "it": "Italian",
+    "de": "German",
+    "pl": "Polish",
+    "ru": "Russian"
+}
+
+def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="en"):
+    """Generates an elite structured strategy via OpenAI."""
+    
+    # Визначаємо мову для ШІ
+    lang_instruction = LANGUAGES.get(language, "English")
+    
+    system_prompt = f"You are an elite astrologer and life coach for successful individuals. Your primary language is English, but you must respond EXACTLY in {lang_instruction}."
+    
+    user_prompt = f"""
+    Client Data:
+    - Name: {name}
+    - Zodiac Sign: {zodiac}
+    - Current Moon Phase: {current_moon}
+    - Numerology Personal Day: {p_day}
+    - Numerology Personal Year: {p_year}
+
+    Task: Write a short, powerful, and stylish daily forecast in {lang_instruction}.
+    Do not use fluff, clichés, or generic greetings. Be specific, actionable, and profound.
+    
+    You MUST use exactly this structure with these emojis (translate the category names if the requested language is {lang_instruction}, but keep the emojis):
+
+    ⚡️ Energy: (1 short sentence about the main vibe based on the Moon and Personal Day)
+    🎯 Focus: (What specifically to do today / where to direct energy)
+    🚫 Avoid: (What actions, thoughts, or people to stay away from today)
+    💡 Insight: (A deep, philosophical or motivational thought of the day)
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7 
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"⚠️ OpenAI Error: {e}")
+        # Красиві заглушки на випадок помилки сервера OpenAI різними мовами
+        fallbacks = {
+            "en": "⚡️ Energy: Focus on your personal power.\n🎯 Focus: Discipline and structure.\n🚫 Avoid: Chaos and distractions.\n💡 Insight: The universe supports your journey when you know your destination.",
+            "uk": "⚡️ Енергія: Фокус на внутрішній силі.\n🎯 Фокус: Дисципліна та структура.\n🚫 Уникати: Хаосу та відволікань.\n💡 Інсайт: Всесвіт підтримує ваш шлях, коли ви знаєте свою мету.",
+            "es": "⚡️ Energía: Concéntrate en tu fuerza interior.\n🎯 Enfoque: Disciplina y estructura.\n🚫 Evitar: Caos y distracciones.\n💡 Perspicacia: El universo te apoya cuando conoces tu destino.",
+            "it": "⚡️ Energia: Concentrati sulla tua forza interiore.\n🎯 Focus: Disciplina e struttura.\n🚫 Evita: Caos e distrazioni.\n💡 Intuizione: L'universo ti supporta quando conosci la tua meta.",
+            "de": "⚡️ Energie: Fokus auf deine innere Kraft.\n🎯 Fokus: Disziplin und Struktur.\n🚫 Vermeiden: Chaos und Ablenkungen.\n💡 Erkenntnis: Das Universum unterstützt deinen Weg, wenn du dein Ziel kennst.",
+            "pl": "⚡️ Energia: Skup się na swojej wewnętrznej sile.\n🎯 Cel: Dyscyplina i struktura.\n🚫 Unikaj: Chaosu i rozpraszaczy.\n💡 Refleksja: Wszechświat wspiera twoją podróż, gdy znasz swój cel.",
+            "ru": "⚡️ Энергия: Фокус на внутренней силе.\n🎯 Фокус: Дисциплина и структура.\n🚫 Избегать: Хаоса и отвлечений.\n💡 Инсайт: Вселенная поддерживает ваш путь, когда вы знаете свою цель."
+        }
+        return fallbacks.get(language, fallbacks["en"])
+
+@app.get("/")
+def home():
+    return {"status": "AstroSync Online v6.0", "features": ["numerology", "astrology", "calendar"]}
+
+@app.get("/horoscope")
+def get_horoscope(name: str, date: str, language: str = "en"):
+    """Основний ендпоінт з повною інформацією"""
+    birth_date_slash = date.replace("-", "/")
+    current_date_slash = datetime.now().strftime("%Y/%m/%d")
+    
+    lp_number = calculate_life_path(date)
+    soul_number = calculate_soul_number(name)
+    personality_number = calculate_personality_number(name)
+    
+    zodiac = get_zodiac_sign(birth_date_slash)
+    natal_moon = get_moon_phase(birth_date_slash)
+    current_moon = get_moon_phase(current_date_slash)
+    cycles = get_personal_cycles(date)
+    
+    ai_advice = generate_smart_advice(name, zodiac, current_moon, cycles['personal_day'], cycles['personal_year'], language)
+    return {
+        "user_name": name,
+        "numerology": {
+            "life_path": lp_number,
+            "soul_number": soul_number,
+            "personality_number": personality_number,
+            "personal_day": cycles['personal_day'],
+            "personal_month": cycles['personal_month'],
+            "personal_year": cycles['personal_year'],
+            "life_path_description": get_number_description(lp_number, "life_path", language),
+            "soul_description": get_number_description(soul_number, "soul", language),
+            "personality_description": get_number_description(personality_number, "personality", language),
+            "day_description": get_number_description(cycles['personal_day'], "day", language)
+        },
+        "astrology": {
+            "sun_sign": zodiac,
+            "natal_moon_phase": natal_moon,
+            "current_moon_phase": current_moon,
+            "element": "Earth" if zodiac in ['Taurus', 'Virgo', 'Capricorn'] else "Water/Air/Fire"
+        },
+        "advice": ai_advice
+    }
+
+@app.get("/calendar")
+def get_calendar(year: int, month: int, language: str = "en"):
+    calendar_data = get_calendar_data(year, month, language)
+    return {"year": year, "month": month, "days": calendar_data}
+
+@app.get("/day-energy")
+def get_today_energy():
+    today = datetime.now().strftime("%Y/%m/%d")
+    energy = get_day_energy(today)
+    return {"date": today.replace("/", "-"), "energy": energy}
+
+@app.get("/natal-chart")
+def get_natal_chart(birth_date: str, birth_time: str, latitude: float, longitude: float, tz: str = "UTC", language: str = "en"):
+    # tz приймається для сумісності, але поки не передається в calculate_natal_chart (там UTC)
+    chart = calculate_natal_chart(birth_date, birth_time, latitude, longitude)
+    
+    if not chart:
+        return {"error": "Could not calculate natal chart"}
+
+    def format_planet(name, data):
+        house_str = data.get("house", "House_1")
+        house_num = int(house_str.split("_")[1]) if "_" in house_str else 1
+        
+        # 🌍 Переклад назв планет для різних мов
+        planet_translations = {
+            "uk": {"Sun": "Сонце", "Moon": "Місяць", "Mercury": "Меркурій", "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпітер", "Saturn": "Сатурн"},
+            "ru": {"Sun": "Солнце", "Moon": "Луна", "Mercury": "Меркурий", "Venus": "Венера", "Mars": "Марс", "Jupiter": "Юпитер", "Saturn": "Сатурн"},
+            "es": {"Sun": "Sol", "Moon": "Luna", "Mercury": "Mercurio", "Venus": "Venus", "Mars": "Marte", "Jupiter": "Júpiter", "Saturn": "Saturno"},
+            "it": {"Sun": "Sole", "Moon": "Luna", "Mercury": "Mercurio", "Venus": "Venere", "Mars": "Marte", "Jupiter": "Giove", "Saturn": "Saturno"},
+            "de": {"Sun": "Sonne", "Moon": "Mond", "Mercury": "Merkur", "Venus": "Venus", "Mars": "Mars", "Jupiter": "Jupiter", "Saturn": "Saturn"},
+            "pl": {"Sun": "Słońce", "Moon": "Księżyc", "Mercury": "Merkury", "Venus": "Wenus", "Mars": "Mars", "Jupiter": "Jowisz", "Saturn": "Saturn"}
+        }
+        
+        local_name = planet_translations.get(language, {}).get(name, name)
+        
+        return {
+            "name": local_name,
+            "sign": data["sign"],
+            "house": house_num,
+            "degree": data.get("degree", 0.0),
+            "is_retrograde": False, 
+            "description": get_planet_meaning(name, data["sign"], house_str, language)
+        }
+
+    planets_data = chart.get("planets", {})
+    big_three = []
+    
+    if "Sun" in planets_data: big_three.append(format_planet("Sun", planets_data["Sun"]))
+    if "Moon" in planets_data: big_three.append(format_planet("Moon", planets_data["Moon"]))
+        
+    asc_sign = chart.get("ascendant", {}).get("sign", "Unknown")
+    asc_degree = chart.get("ascendant", {}).get("degree", 0.0)
+    
+    # 🌍 Переклад для Асценденту
+    asc_desc_map = {
+        "en": f"Your Ascendant in {asc_sign} shapes your outward personality.",
+        "uk": f"Ваш Асцендент у знаку {asc_sign} формує вашу зовнішню особистість.",
+        "es": f"Tu Ascendente en {asc_sign} forma tu personalidad exterior.",
+        "it": f"Il tuo Ascendente in {asc_sign} modella la tua personalità esteriore.",
+        "de": f"Dein Aszendent in {asc_sign} prägt deine äußere Persönlichkeit.",
+        "pl": f"Twój Ascendent w {asc_sign} kształtuje twoją zewnętrzną osobowość.",
+        "ru": f"Ваш Асцендент в знаке {asc_sign} формирует вашу внешнюю личность."
+    }
+    
+    big_three.append({
+        "name": "Асцендент" if language in ["uk", "ru"] else ("Ascendente" if language in ["es", "it"] else ("Aszendent" if language == "de" else ("Ascendent" if language == "pl" else "Ascendant"))),
+        "sign": asc_sign,
+        "house": 1,
+        "degree": asc_degree,
+        "is_retrograde": False,
+        "description": asc_desc_map.get(language, asc_desc_map["en"])
+    })
+
+    other_planets = []
+    for p in ["Mercury", "Venus", "Mars", "Jupiter", "Saturn"]:
+        if p in planets_data:
+            other_planets.append(format_planet(p, planets_data[p]))
+
+    return {"big_three": big_three, "planets": other_planets}
+    
+@app.post("/compatibility")
+def get_compatibility(data: dict):
+    try:
+        person1, person2 = data.get('person1'), data.get('person2')
+        if not person1 or not person2: return {"error": "Missing person1 or person2 data"}
+        result = calculate_compatibility(person1, person2)
+        if not result: return {"error": "Could not calculate compatibility"}
+        return result
+    except Exception as e: return {"error": str(e)}
+  
+@app.get("/destiny-matrix")
+def get_destiny_matrix(birth_date: str, language: str = "en"):
+    result = get_full_destiny_matrix(birth_date, language)
+    if not result: return {"error": "Could not calculate destiny matrix"}
+    return result
+
+@app.get("/quantum-field")
+def get_quantum_field(latitude: float = 50.45, longitude: float = 30.52):
+    result = calculate_quantum_state(latitude, longitude)
+    if not result: return {"error": "Quantum field fluctuation error"}
+    return result
+
+def evaluate_planner_task(task: str, target_date: str, birth_date: str, language: str = "en"):
+    lang_instruction = LANGUAGES.get(language, "English")
+    system_prompt = f"""You are an elite astrological time-management coach. 
+    You evaluate if a specific date is favorable for a user's specific task based on astrology and numerology.
+    You MUST respond ONLY with a valid JSON object. Do not include any markdown formatting like ```json."""
+    
+    user_prompt = f"""
+    Task to evaluate: "{task}"
+    Target Date for Task: {target_date}
+    User's Birth Date: {birth_date}
+    
+    Analyze the astrological and numerological compatibility of this task for this specific date.
+    Return a JSON object with EXACTLY these three keys:
+    1. "score": an integer from 0 to 100 representing how favorable the day is.
+    2. "verdict": 2 short sentences explaining the astrological/numerological reason why, in {lang_instruction}. Use 1-2 emojis.
+    3. "advice": 1 practical sentence on what to do, in {lang_instruction}.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            max_tokens=300, temperature=0.7, response_format={"type": "json_object"}
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        print(f"⚠️ Planner AI Error: {e}")
+        return {
+            "score": 50,
+            "verdict": "Енергія дня нейтральна." if language in ["uk", "ru"] else "The energy is neutral.",
+            "advice": "Дійте обережно." if language in ["uk", "ru"] else "Proceed with caution."
+        }
+
+@app.post("/smart-planner")
+def smart_planner_endpoint(data: dict):
+    task, target_date, birth_date, language = data.get("task"), data.get("target_date"), data.get("birth_date"), data.get("language", "en")
+    if not all([task, target_date, birth_date]): return {"error": "Missing required fields"}
+    return evaluate_planner_task(task, target_date, birth_date, language)
+
+@app.get("/daily-insight")
+def get_daily_insight(date: str, language: str = "en"):
+    lang_instruction = LANGUAGES.get(language, "English")
+    system_prompt = f"You are an elite astro-coach. Respond strictly in {lang_instruction}."
+    
+    user_prompt = f"Analyze the general astrological energy for the date: {date}. Write a short, inspiring 2-sentence forecast for this specific day. Use 1-2 emojis."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            max_tokens=150, temperature=0.7
+        )
+        insight = response.choices[0].message.content.strip()
+    except Exception as e:
+        insight = "Енергія цього дня вимагає балансу." if language in ["uk", "ru"] else "This day requires balance."
+        
+    return {"date": date, "insight": insight}
+
+class AICoachRequest(BaseModel):
+    question: str
+    name: str = "Мандрівник"
+    language: str = "uk"
+    module_name: str = ""
+    context_data: str = ""
+
+@app.post('/ai-appcoach')
+def ai_appcoach(request: AICoachRequest):
+    try:
+        question      = request.question
+        name          = request.name
+        language      = request.language
+        module_name   = request.module_name.strip()
+        context_data  = request.context_data
+        user_context  = ""
+
+        lang_prompt = LANGUAGES.get(language, "English")
+
+        # Merge legacy matrix context + new screen context into one block
+        full_context = "\n".join(filter(None, [user_context, context_data])) or "No data"
+
+        # --- Module-specific expert personas ---
+        MODULE_EXPERTS = {
+            # Ukrainian names
+            "Натальна Карта": (
+                "You are an elite Vedic and Western astrologer. "
+                "Your ONLY domain is Natal Charts (birth charts): planetary positions, houses, aspects, and their life implications. "
+                "You interpret the Big Three (Sun, Moon, Ascendant) and all planetary placements with depth and precision."
+            ),
+            "Матриця Долі": (
+                "You are the world's leading Destiny Matrix expert (22 Major Arcana system). "
+                "Your ONLY domain is the Destiny Matrix: arcana meanings, karma, family lines (father/mother), "
+                "comfort zone, social mask, talents, material karma, and life purpose calculations."
+            ),
+            "Сумісність": (
+                "You are a Synastry and Relationship Astrology specialist. "
+                "Your ONLY domain is astrological compatibility between two people: synastry overlays, "
+                "karmic connections, romantic/emotional/spiritual/mental scores, and relationship advice."
+            ),
+            "Ангельські Числа": (
+                "You are a master numerologist specialising exclusively in Angel Numbers. "
+                "Your ONLY domain is angel numbers: their vibrational meaning, spiritual messages, "
+                "and how they guide daily decisions and the life path."
+            ),
+            "Smart Планувальник": (
+                "You are an astrological time-management coach. "
+                "Your ONLY domain is the Smart Planner: evaluating whether specific dates are favorable "
+                "for specific tasks using astrology and numerology, and optimising life planning."
+            ),
+            "Нумерологія": (
+                "You are a master numerologist covering Pythagorean, Chaldean, Kabbalistic, and Chinese systems. "
+                "Your ONLY domain is numerology: life path numbers, soul numbers, name vibrations, "
+                "personal year charts, and their influence on personality and destiny."
+            ),
+            "AstroSync": (
+                "You are the ultimate AstroSync App Expert — a guide across all esoteric modules: "
+                "astrology, numerology, Destiny Matrix, compatibility, and cosmic planning."
+            ),
+            # English names (mirror)
+            "Natal Chart": (
+                "You are an elite Vedic and Western astrologer. "
+                "Your ONLY domain is Natal Charts: planetary positions, houses, aspects, and their life implications."
+            ),
+            "Destiny Matrix": (
+                "You are the world's leading Destiny Matrix expert (22 Major Arcana system). "
+                "Your ONLY domain is the Destiny Matrix: arcana meanings, karma, family lines, and life purpose."
+            ),
+            "Compatibility": (
+                "You are a Synastry and Relationship Astrology specialist. "
+                "Your ONLY domain is astrological compatibility: synastry, karmic bonds, and relationship scores."
+            ),
+            "Angel Numbers": (
+                "You are a master numerologist specialising exclusively in Angel Numbers: "
+                "vibrational meaning, spiritual messages, and daily guidance."
+            ),
+            "Smart Planner": (
+                "You are an astrological time-management coach. "
+                "Your ONLY domain is the Smart Planner: favorable dates for tasks via astrology and numerology."
+            ),
+            "Numerology": (
+                "You are a master numerologist covering Pythagorean, Chaldean, Kabbalistic, and Chinese systems."
+            ),
+        }
+
+        default_persona = (
+            "You are the ultimate AstroSync App Expert and Destiny Matrix Guide. "
+            "You explain personal esoteric calculations across astrology, numerology, and destiny."
+        )
+        expert_persona = MODULE_EXPERTS.get(module_name, default_persona)
+        display_module = module_name if module_name else "AstroSync"
+
+        system_prompt = f"""
+{expert_persona}
+
+CURRENT SCREEN: {display_module}
+USER'S DATA FROM THE APP:
+{full_context}
+
+STRICT OPERATING RULES:
+1. SCOPE LOCK — You are a narrow specialist. ONLY answer questions directly related to {display_module} and esoteric topics connected to it.
+   If the user asks about ANYTHING outside this scope (cooking, politics, coding, sports, general knowledge, other app modules), FIRMLY refuse:
+   "I am your {display_module} expert. I can only help with questions about {display_module}."
+2. DATA INTEGRITY — ONLY use numbers/data from the context block above. NEVER invent or guess arcana numbers, planet positions, or scores.
+3. NO DATA RULE — If context says "No data" or is empty, tell the user to provide their birth date in Settings.
+4. LANGUAGE — Answer strictly in {lang_prompt}. Never switch languages mid-reply.
+5. TONE — Be engaging, empathetic, structured, and deeply insightful. Use 1-2 relevant emojis per response.
+"""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.35,
+            max_tokens=1000
+        )
+        return {"answer": response.choices[0].message.content}
+
+    except Exception as e:
+        errors = {
+            "en": "The expert is busy. Try again in a minute.",
+            "uk": "Експерт зараз аналізує дані. Спробуйте через хвилинку.",
+            "es": "El experto está ocupado. Inténtalo de nuevo.",
+            "it": "L'esperto è occupato. Riprova tra poco.",
+            "de": "Der Experte ist beschäftigt. Versuchen Sie es gleich noch einmal.",
+            "pl": "Ekspert jest zajęty. Spróbuj ponownie za chwilę.",
+            "ru": "Эксперт сейчас занят. Попробуйте через минуту."
+        }
+        return {"answer": errors.get(request.language, errors["en"])}
+    
+@app.get("/angel-numbers")
+def get_angel_numbers(birth_date: str, language: str = "en"):
+    """Ендпоінт для розрахунку Числа Ангела та генерації преміум-тексту"""
+    
+    # 1. Отримуємо математичний розрахунок (наприклад, "111")
+    calc_result = calculate_angel_number(birth_date)
+    angel_num = calc_result["angel_number"]
+    
+    # 2. Генеруємо преміум-розшифровку через ШІ
+    lang_instruction = LANGUAGES.get(language, "English")
+    system_prompt = f"You are an elite numerologist. The user's angel number is {angel_num}. Write a mystical and inspiring 3-sentence reading about what this number means for their destiny. Respond strictly in {lang_instruction}."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_prompt}],
+            max_tokens=250, temperature=0.7
+        )
+        premium_text = response.choices[0].message.content.strip()
+    except Exception:
+        premium_text = "Твоя доля кличе тебе. Довірся Всесвіту та енергії чисел."
+        
+    # 3. Віддаємо дані в додаток
+    return {
+        "angel_number": angel_num,
+        "premium_description": premium_text
+    }
+@app.get("/moon-widget")
+def get_moon_widget(language: str = "en"):
+    """Ендпоінт для віджета Місяця на Головному Екрані"""
+    # Отримуємо сьогоднішню дату
+    today_slash = datetime.now().strftime("%Y/%m/%d")
+    
+    # Визначаємо фазу місяця (функція вже є у твоєму astro_basic.py)
+    current_moon = get_moon_phase(today_slash)
+    
+    # Просимо ШІ дати дуже коротку пораду на день (1 речення)
+    lang_instruction = LANGUAGES.get(language, "English")
+    system_prompt = f"You are a lunar astrologer. The current moon phase is {current_moon}. Write ONE short, mystical, and inspiring sentence of advice for today based on this phase. Respond strictly in {lang_instruction}."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_prompt}],
+            max_tokens=60, temperature=0.7
+        )
+        moon_advice = response.choices[0].message.content.strip()
+    except Exception:
+        moon_advice = "Слухай свою інтуїцію сьогодні. Енергія місяця на твоєму боці." if language in ["uk", "ru"] else "Listen to your intuition today."
+        
+    return {
+        "moon_phase": current_moon,
+        "advice": moon_advice
+    }
+    
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    print(f"🚀 Starting AstroSync on port {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)
