@@ -161,7 +161,7 @@ def calculate_aspects(planets_data: dict) -> list:
 # ---------------------------------------------------------------------------
 
 def calculate_natal_chart(birth_date: str, birth_time: str,
-                          latitude: float, longitude: float) -> dict | None:
+                          latitude: float, longitude: float):
     """
     Розраховує повну натальну карту рівня Elite за допомогою flatlib (Swiss Ephemeris).
 
