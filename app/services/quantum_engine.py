@@ -79,6 +79,55 @@ def calculate_quantum_state(latitude=50.45, longitude=30.52):
         print(f"❌ Quantum Engine Error: {e}")
         return None
 
+ENERGY_MAP = {
+    "Sun": "Focus",
+    "Moon": "Rest",
+    "Mercury": "Communication",
+    "Venus": "Creativity",
+    "Mars": "Focus",
+    "Jupiter": "Creativity",
+    "Saturn": "Rest",
+}
+
+
+def generate_daily_timeline(target_date: str) -> dict:
+    """
+    Generates a 24-hour planetary timeline for a given date.
+    Each hour is mapped to its Chaldean ruling planet, Sephira, and energy type.
+    """
+    try:
+        parsed = datetime.strptime(target_date, "%Y-%m-%d")
+
+        day_rulers = ["Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Sun"]
+        day_ruler = day_rulers[parsed.weekday()]
+
+        start_index = CHALDEAN_ORDER.index(day_ruler)
+
+        timeline = []
+        for i in range(24):
+            hour_of_day = (6 + i) % 24
+            time_str = f"{hour_of_day:02d}:00"
+            planet = CHALDEAN_ORDER[(start_index + i) % 7]
+            sephira_data = SEPHIROT_MAP[planet]
+            energy_type = ENERGY_MAP[planet]
+            timeline.append({
+                "time": time_str,
+                "planet": planet,
+                "energy_type": energy_type,
+                "sephira": sephira_data["name"],
+                "action": sephira_data["action"],
+            })
+
+        return {
+            "date": target_date,
+            "day_ruler": day_ruler,
+            "timeline": timeline,
+        }
+    except Exception as e:
+        print(f"❌ Daily Timeline Error: {e}")
+        return {"error": "Could not generate timeline"}
+
+
 # --- ТЕСТ ---
 if __name__ == "__main__":
     print("⚛️ Initializing Quantum Sephirot Engine...")

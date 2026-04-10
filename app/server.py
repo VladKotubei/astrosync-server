@@ -1,7 +1,7 @@
 # --- AstroSync: Elite API Server v6.0 ---
 from fastapi import FastAPI
 from pydantic import BaseModel
-from app.services.quantum_engine import calculate_quantum_state
+from app.services.quantum_engine import calculate_quantum_state, generate_daily_timeline
 from app.services.natal_chart import calculate_natal_chart, get_planet_meaning
 from openai import OpenAI
 from datetime import datetime
@@ -390,6 +390,17 @@ def get_destiny_matrix(birth_date: str, language: str = "en"):
 def get_quantum_field(latitude: float = 50.45, longitude: float = 30.52):
     result = calculate_quantum_state(latitude, longitude)
     if not result: return {"error": "Quantum field fluctuation error"}
+    return result
+
+@app.get("/daily-timeline")
+def get_daily_timeline(date: str):
+    """
+    Returns a 24-hour planetary timeline for the Smart Planner 'Daily Energy' tab.
+    Expects `date` as a query parameter in YYYY-MM-DD format.
+    """
+    result = generate_daily_timeline(date)
+    if not result or "error" in result:
+        return {"error": "Could not generate daily timeline"}
     return result
 
 def evaluate_planner_task(task: str, target_date: str, birth_date: str, language: str = "en"):
