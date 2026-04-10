@@ -286,7 +286,14 @@ def get_compatibility(data: dict):
         return result
     except Exception as e: return {"error": str(e)}
 
-# --- Synastry Lite endpoint (Free / Viral sharing) ---
+# --- Synastry Lite (Free / Viral) ---
+class CompatibilityLiteRequest(BaseModel):
+    name1: str
+    date1: str  # Format: 'YYYY-MM-DD'
+    name2: str
+    date2: str  # Format: 'YYYY-MM-DD'
+    language: str = "en"
+
 @app.post("/compatibility-lite")
 def get_compatibility_lite(request: CompatibilityLiteRequest):
     """
@@ -442,14 +449,6 @@ def get_daily_insight(date: str, language: str = "en"):
         insight = "Енергія цього дня вимагає балансу." if language in ["uk", "ru"] else "This day requires balance."
         
     return {"date": date, "insight": insight}
-
-# --- Synastry Lite (Free / Viral) ---
-class CompatibilityLiteRequest(BaseModel):
-    name1: str
-    date1: str  # Format: 'YYYY-MM-DD'
-    name2: str
-    date2: str  # Format: 'YYYY-MM-DD'
-    language: str = "en"
 
 class AICoachRequest(BaseModel):
     question: str
