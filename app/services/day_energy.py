@@ -35,7 +35,9 @@ def calculate_global_day_energy(target_date: str = None) -> dict:
     date_sum = sum(int(d) for d in digits)
 
     # get_moon_phase() returns a string like "New Moon 🌑" — strip the emoji
-    moon_raw = get_moon_phase(target_date)
+    # Convert YYYY-MM-DD to YYYY/MM/DD for flatlib compatibility
+    flatlib_date = target_date.replace("-", "/")
+    moon_raw = get_moon_phase(flatlib_date)
     moon_phase_name = moon_raw.rsplit(" ", 1)[0] if moon_raw else "New Moon"
     moon_modifier = MOON_PHASE_MODIFIER.get(moon_phase_name, 2)
 
