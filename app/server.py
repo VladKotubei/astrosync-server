@@ -11,7 +11,7 @@ from app.services.compatibility import calculate_compatibility, calculate_lite_c
 from app.services.angel_numbers import calculate_angel_number
 from app.services.shared_matrix import calculate_shared_matrix
 from app.services.day_energy import calculate_global_day_energy
-from app.services.cache import permanent_cache
+from app.services.cache import permanent_cache, daily_cache
 import json
 import uvicorn
 import sys
@@ -686,6 +686,38 @@ def get_global_day_energy(date: str = None):
     """
     try:
         return calculate_global_day_energy(date)
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/v1/dynamic-synastry")
+def get_dynamic_synastry(birth_date_a: str, birth_date_b: str, date: str = None):
+    """
+    Dynamic Synastry: Shared Matrix + Today's Active Zone.
+    Returns the full pair matrix with today's highlighted zone.
+    """
+    try:
+        sorted_dates = tuple(sorted([birth_date_a, birth_date_b]))
+        cache_key = f"shared_matrix:{sorted_dates[0]}:{sorted_dates[1]}"
+        matrix = permanent_cache.get(cache_key)
+        if not matrix:
+            matrix = calculate_shared_matrix(birth_date_a, birth_date_b)
+            permanent_cache.set(cache_key, matrix)
+
+        energy = calculate_global_day_energy(date)
+
+        active_zone_key = energy["active_zone"]
+        active_zone_data = matrix["zones"].get(active_zone_key, {})
+
+        return {
+            "matrix": matrix,
+            "day_energy": energy,
+            "active_zone": {
+                "key": active_zone_key,
+                "name": active_zone_data.get("name", ""),
+                "arcana": active_zone_data.get("arcana", 0),
+                "intensity": energy["intensity"]
+            }
+        }
     except Exception as e:
         return {"error": str(e)}
 
