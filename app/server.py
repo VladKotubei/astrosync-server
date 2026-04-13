@@ -104,6 +104,10 @@ def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="e
         }
         return fallbacks.get(language, fallbacks["en"])
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "version": "7.0", "timestamp": datetime.utcnow().isoformat()}
+
 @app.get("/")
 def home():
     return {"status": "AstroSync Online v6.0", "features": ["numerology", "astrology", "calendar"]}
