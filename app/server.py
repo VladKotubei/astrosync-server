@@ -9,6 +9,8 @@ from openai import OpenAI
 from datetime import datetime
 from app.services.compatibility import calculate_compatibility, calculate_lite_compatibility
 from app.services.angel_numbers import calculate_angel_number
+from app.services.shared_matrix import calculate_shared_matrix
+from app.services.cache import permanent_cache
 import json
 import uvicorn
 import sys
@@ -653,7 +655,27 @@ def get_moon_widget(language: str = "en"):
         "moon_phase": current_moon,
         "advice": moon_advice
     }
-    
+
+@app.get("/api/v1/shared-matrix")
+def get_shared_matrix(birth_date_a: str, birth_date_b: str):
+    """
+    Calculate shared destiny matrix for two people.
+    Results are cached for 7 days (static math, never changes).
+    """
+    sorted_dates = tuple(sorted([birth_date_a, birth_date_b]))
+    cache_key = f"shared_matrix:{sorted_dates[0]}:{sorted_dates[1]}"
+
+    cached = permanent_cache.get(cache_key)
+    if cached:
+        return cached
+
+    try:
+        result = calculate_shared_matrix(birth_date_a, birth_date_b)
+        permanent_cache.set(cache_key, result)
+        return result
+    except ValueError as e:
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     print(f"🚀 Starting AstroSync on port {port}...")
