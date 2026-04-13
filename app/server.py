@@ -1,4 +1,6 @@
 # --- AstroSync: Elite API Server v6.0 ---
+# NOTE: Legacy endpoints (/, /horoscope, etc.) remain at root for backward compatibility.
+# All NEW endpoints MUST use /api/v1/ prefix.
 from fastapi import FastAPI
 from pydantic import BaseModel
 from app.services.quantum_engine import calculate_quantum_state, generate_daily_timeline
