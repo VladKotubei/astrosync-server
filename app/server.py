@@ -10,6 +10,7 @@ from datetime import datetime
 from app.services.compatibility import calculate_compatibility, calculate_lite_compatibility
 from app.services.angel_numbers import calculate_angel_number
 from app.services.shared_matrix import calculate_shared_matrix
+from app.services.day_energy import calculate_global_day_energy
 from app.services.cache import permanent_cache
 import json
 import uvicorn
@@ -674,6 +675,18 @@ def get_shared_matrix(birth_date_a: str, birth_date_b: str):
         permanent_cache.set(cache_key, result)
         return result
     except ValueError as e:
+        return {"error": str(e)}
+
+@app.get("/api/v1/global-day-energy")
+def get_global_day_energy(date: str = None):
+    """
+    Returns today's global energy (same for all users).
+    Includes which matrix zone is active today.
+    Cached for 24 hours.
+    """
+    try:
+        return calculate_global_day_energy(date)
+    except Exception as e:
         return {"error": str(e)}
 
 if __name__ == "__main__":
