@@ -58,7 +58,7 @@ LANGUAGES = {
     "ru": "Russian"
 }
 
-def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="en"):
+def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="en", palm_context=None):
     """Generates an elite structured strategy via OpenAI."""
     
     # Визначаємо мову для ШІ
@@ -66,6 +66,17 @@ def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="e
     
     system_prompt = f"You are an elite astrologer and life coach for successful individuals. Your primary language is English, but you must respond EXACTLY in {lang_instruction}."
     
+    palm_block = ""
+    if palm_context:
+        palm_block = f"""
+    Palm Reading Context (from biometric scan):
+    {palm_context}
+    
+    IMPORTANT: Naturally weave palm reading insights into the forecast.
+    For example: "Given your strong Mars line, today's energy supports bold decisions..."
+    Do NOT make the palm reading the main focus — it should enhance the existing forecast.
+    """
+
     user_prompt = f"""
     Client Data:
     - Name: {name}
@@ -83,6 +94,7 @@ def generate_smart_advice(name, zodiac, current_moon, p_day, p_year, language="e
     🎯 Focus: (What specifically to do today / where to direct energy)
     🚫 Avoid: (What actions, thoughts, or people to stay away from today)
     💡 Insight: (A deep, philosophical or motivational thought of the day)
+    {palm_block}
     """
     
     try:
@@ -119,7 +131,7 @@ def home():
     return {"status": "AstroSync Online v6.0", "features": ["numerology", "astrology", "calendar"]}
 
 @app.get("/horoscope")
-def get_horoscope(name: str, date: str, language: str = "en"):
+def get_horoscope(name: str, date: str, language: str = "en", palm_context: str = None):
     """Основний ендпоінт з повною інформацією"""
     birth_date_slash = date.replace("-", "/")
     current_date_slash = datetime.now().strftime("%Y/%m/%d")
@@ -133,7 +145,7 @@ def get_horoscope(name: str, date: str, language: str = "en"):
     current_moon = get_moon_phase(current_date_slash)
     cycles = get_personal_cycles(date)
     
-    ai_advice = generate_smart_advice(name, zodiac, current_moon, cycles['personal_day'], cycles['personal_year'], language)
+    ai_advice = generate_smart_advice(name, zodiac, current_moon, cycles['personal_day'], cycles['personal_year'], language, palm_context)
     return {
         "user_name": name,
         "numerology": {
@@ -477,6 +489,7 @@ class AICoachRequest(BaseModel):
     language: str = "uk"
     module_name: str = ""
     context_data: str = ""
+    palm_context: str = ""
 
 class PalmScanRequest(BaseModel):
     image_base64: str
@@ -495,6 +508,7 @@ def ai_appcoach(request: AICoachRequest):
         language      = request.language
         module_name   = request.module_name.strip()
         context_data  = request.context_data
+        palm_context  = request.palm_context
         user_context  = ""
 
         lang_prompt = LANGUAGES.get(language, "English")
@@ -578,7 +592,13 @@ def ai_appcoach(request: AICoachRequest):
 CURRENT SCREEN: {display_module}
 USER'S DATA FROM THE APP:
 {full_context}
-
+{"" if not palm_context else f'''
+Palm Reading Context:
+{palm_context}
+Consider the user's palm reading data when suggesting practices.
+Breaks in lines suggest areas needing grounding practices.
+Strong lines suggest areas of natural talent to leverage.
+'''}
 STRICT OPERATING RULES:
 1. SCOPE LOCK — You are a narrow specialist. ONLY answer questions directly related to {display_module} and esoteric topics connected to it.
    If the user asks about ANYTHING outside this scope (cooking, politics, coding, sports, general knowledge, other app modules), FIRMLY refuse:
