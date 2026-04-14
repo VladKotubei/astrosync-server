@@ -734,46 +734,46 @@ def get_dynamic_synastry(birth_date_a: str, birth_date_b: str, date: str = None)
 # --- Quantum Palm: Biometric Palmistry ---
 
 @app.post("/api/v1/palm/validate")
-def palm_validate(request: PalmScanRequest):
+async def palm_validate(request: PalmScanRequest):
     """Validate if image contains a human palm. Free call — no subscription check."""
     try:
-        result = validate_palm_image(client, request.image_base64)
+        result = await validate_palm_image(client, request.image_base64)
         return result
     except Exception as e:
         return {"error": "validation_failed", "message": str(e)}
 
 @app.post("/api/v1/palm/visual-scan")
-def palm_visual_scan(request: PalmScanRequest):
+async def palm_visual_scan(request: PalmScanRequest):
     """Quick weekly energy scan from palm image. Premium only."""
     try:
-        validation = validate_palm_image(client, request.image_base64)
+        validation = await validate_palm_image(client, request.image_base64)
         if not validation.get("is_valid_palm"):
             return {"error": "biometric_not_recognized", "message": "Biometric data not recognized. Please ensure your palm is clearly visible and try again."}
-        result = visual_scan(client, request.image_base64, request.language)
+        result = await visual_scan(client, request.image_base64, request.language)
         return result
     except Exception as e:
         return {"error": "scan_failed", "message": str(e)}
 
 @app.post("/api/v1/palm/deep-scan")
-def palm_deep_scan(request: PalmScanRequest):
+async def palm_deep_scan(request: PalmScanRequest):
     """Full monthly palm analysis. Premium only."""
     try:
-        validation = validate_palm_image(client, request.image_base64)
+        validation = await validate_palm_image(client, request.image_base64)
         if not validation.get("is_valid_palm"):
             return {"error": "biometric_not_recognized", "message": "Biometric data not recognized. Please ensure your palm is clearly visible and try again."}
-        result = deep_scan(client, request.image_base64, request.language)
+        result = await deep_scan(client, request.image_base64, request.language)
         return result
     except Exception as e:
         return {"error": "scan_failed", "message": str(e)}
 
 @app.post("/api/v1/palm/guest-compatibility")
-def palm_guest_compatibility(request: GuestScanRequest):
+async def palm_guest_compatibility(request: GuestScanRequest):
     """Compare guest palm with owner's stored palm data. Premium only."""
     try:
-        validation = validate_palm_image(client, request.guest_image_base64)
+        validation = await validate_palm_image(client, request.guest_image_base64)
         if not validation.get("is_valid_palm"):
             return {"error": "biometric_not_recognized", "message": "Biometric data not recognized. Please ensure the palm is clearly visible and try again."}
-        result = guest_compatibility_scan(client, request.guest_image_base64, request.owner_palm_data, request.language)
+        result = await guest_compatibility_scan(client, request.guest_image_base64, request.owner_palm_data, request.language)
         return result
     except Exception as e:
         return {"error": "scan_failed", "message": str(e)}
