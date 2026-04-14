@@ -12,6 +12,7 @@ from app.services.compatibility import calculate_compatibility, calculate_lite_c
 from app.services.angel_numbers import calculate_angel_number
 from app.services.shared_matrix import calculate_shared_matrix
 from app.services.day_energy import calculate_global_day_energy
+from app.services.aura_engine import calculate_daily_aura
 from app.services.cache import permanent_cache, daily_cache
 import json
 import uvicorn
@@ -500,6 +501,13 @@ class GuestScanRequest(BaseModel):
     owner_palm_data: dict
     language: str = "en"
 
+class AuraDailyRequest(BaseModel):
+    birth_date: str        # "1990-05-15"
+    current_date: str      # "2026-04-14"
+    latitude: float = 0.0
+    longitude: float = 0.0
+    language: str = "uk"
+
 @app.post('/ai-appcoach')
 def ai_appcoach(request: AICoachRequest):
     try:
@@ -797,6 +805,23 @@ async def palm_guest_compatibility(request: GuestScanRequest):
         return result
     except Exception as e:
         return {"error": "scan_failed", "message": str(e)}
+
+# --- AuraSync: Daily Aura Visualization ---
+
+@app.post("/api/v1/aura/daily")
+async def get_daily_aura(request: AuraDailyRequest):
+    """Calculate daily aura based on planetary hours and moon phase."""
+    try:
+        result = calculate_daily_aura(
+            birth_date=request.birth_date,
+            current_date=request.current_date,
+            language=request.language
+        )
+        if "error" in result:
+            return {"error": result["error"]}
+        return result
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
