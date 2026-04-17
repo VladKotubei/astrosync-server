@@ -13,6 +13,7 @@ from app.services.angel_numbers import calculate_angel_number
 from app.services.shared_matrix import calculate_shared_matrix
 from app.services.day_energy import calculate_global_day_energy
 from app.services.aura_engine import calculate_daily_aura
+from app.services.neuro_sync_engine import calculate_neuro_sync_recipe
 from app.services.cache import permanent_cache, daily_cache
 import json
 import uvicorn
@@ -585,6 +586,17 @@ def ai_appcoach(request: AICoachRequest):
             "Numerology": (
                 "You are a master numerologist covering Pythagorean, Chaldean, Kabbalistic, and Chinese systems."
             ),
+            "Neuro-Sync": (
+                "You are an elite Neuro-Sync frequency specialist. "
+                "Your ONLY domain is binaural beats, planetary frequencies, "
+                "breathing patterns, and energy-balancing techniques. "
+                "Do NOT use medical terms like therapy, treatment, ADHD, or depression."
+            ),
+            "NeuroSync": (
+                "You are an elite Neuro-Sync frequency specialist. "
+                "Your ONLY domain is binaural beats, planetary frequencies, "
+                "breathing patterns, and energy-balancing techniques."
+            ),
         }
 
         default_persona = (
@@ -820,6 +832,21 @@ async def get_daily_aura(request: AuraDailyRequest):
         if "error" in result:
             return {"error": result["error"]}
         return result
+    except Exception as e:
+        return {"error": str(e)}
+
+# --- Neuro-Sync: Daily Frequency Recipe ---
+
+@app.get("/api/v1/neuro-sync/today")
+async def get_neuro_sync_today(
+    latitude: float = 50.45,
+    longitude: float = 30.52,
+    language: str = "en"
+):
+    """Return today's Neuro-Sync frequency recipe based on planetary transits."""
+    try:
+        recipe = calculate_neuro_sync_recipe(latitude, longitude)
+        return recipe
     except Exception as e:
         return {"error": str(e)}
 
